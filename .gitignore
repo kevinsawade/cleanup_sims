@@ -114,6 +114,9 @@ venv.bak/
 .spyderproject
 .spyproject
 
+# PyCharm
+.idea/
+
 # Rope project settings
 .ropeproject
 
@@ -127,3 +130,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# development dirs
+input_sims/
+output_sims/
