@@ -568,7 +568,7 @@ async def get_times_from_file(file: Path, i: int) -> dict[Path, np.ndarray]:
     with XTC(file) as f:
         times = np.fromiter(f, dtype=float)
 
-    xr.Dataset(
+    ds = xr.Dataset(
         {
             "ps": (["traj", "frame"], [times]),
             "name": (["traj"], [str(file)]),
@@ -593,16 +593,42 @@ async def write_and_check_times(simulation: tuple[Path, dict[Path, Path]],
                                 max_time: int = -1,
                                 dt: int = -1,
                                 n_atoms: int = -1,
-                                pbc: str = "nojump",
+                                per_file_timestep_policy: PerFileTimestepPolicyType = "raise",
+                                inter_file_timestep_policy: InterFileTimestepPolicyType = "raise",
+                                file_exists_policy: FileExistsPolicyType = "raise",
                                 ) -> bool:
     sim_dir, sim_files = simulation
+    logger = _get_logger()
     data_file = sim_dir / "metadata.nc"
+    out = {sim_dir: {}}
     if data_file.is_file():
-        data_file.unlink()
-    if data_file.is_file():
+        print(f"Opening metadata.nv for simulation {sim_dir}.")
         ds = xr.open_dataset(data_file)
 
         # check existence of all out
+        if sim_files["trjcat"]:
+            if not sim_files["trjcat"].is_file():
+                logger.debug(f'trjcat file {sim_files["trjcat"]} does not exist. I will create it.')
+                out[sim_dir]["trjcat"] = {"run": True, "check": False}
+            else:
+                logger.debug(f'trjcat file {sim_files["trjcat"]} exists. I will check it.')
+                out[sim_dir]["trjcat"] = {"check": True, "run": False}
+        else:
+            out[sim_dir]["trjcat"] = {"check": False, "run": False}
+
+        if out[sim_dir]["trjcat"]["check"]:
+            # compare hashes
+            old_hash = ds["hash"][ds["name"] == str(sim_files["trjcat"])].values
+            assert old_hash.size == 1
+            old_hash = old_hash[0]
+            new_hash = imohash.hashfile(sim_files["trjcat"], hexdigest=True)
+            if not old_hash == new_hash:
+                raise NotImplementedError("File has changed on disk.")
+            else:
+                logger.debug()
+
+            # if ds[{"traj": }]
+
 
         # check hash otherwise calculate new
 
@@ -613,15 +639,18 @@ async def write_and_check_times(simulation: tuple[Path, dict[Path, Path]],
         # for the remaining files check existence, dt, start, stop,
 
         # check
-        print(ds.frame_no)
-        print(ds.attrs)
+        # print(ds.hash)
 
     else:
+        logger.debug(f"The simulation {sim_dir} is missing its metadata.nc file. "
+                     f"I will scan the files and collect the timesteps.")
         times = await asyncio.gather(
-            *[get_times_from_file(s, i) for i, s in enumerate([k for k, v in sim_files.items() if k != "trjcat"])]
+            *[get_times_from_file(s, i)
+              for i, s in enumerate([k for k, v in sim_files.items() if k != "trjcat"])]
         )
         times.extend(await asyncio.gather(
-            *[get_times_from_file(s, i + len(times)) for i, s in enumerate([v for k, v in sim_files.items() if k != "trjcat" and v.is_file()])]
+            *[get_times_from_file(s, i + len(times))
+              for i, s in enumerate([v for k, v in sim_files.items() if k != "trjcat" and v.is_file()])]
         ))
         if sim_files["trjcat"]:
             all_out_file = sim_files["trjcat"]
@@ -743,10 +772,12 @@ async def prepare_sim_cleanup(simulations: dict[Path, dict[Path, Path]],
                               max_time: int = -1,
                               dt: int = -1,
                               n_atoms: int = -1,
-                              pbc: str = "nojump",
+                              per_file_timestep_policy: PerFileTimestepPolicyType = "raise",
+                              inter_file_timestep_policy: InterFileTimestepPolicyType = "raise",
+                              file_exists_policy: FileExistsPolicyType = "raise",
                               ) -> dict:
     plan = await asyncio.gather(
-        *[write_and_check_times(simulation, max_time, dt, n_atoms, pbc)
+        *[write_and_check_times(simulation, max_time, dt, n_atoms)
           for simulation in simulations.items()]
     )
     print(plan)
@@ -881,7 +912,7 @@ def cleanup_sims(directories: List[str],
     # prepeare everything
     # this method filters out what actually needs to be done and whether it is doable
     # out comes a dictionary that can be passed to asyncio
-    plan = asyncio.run(prepare_sim_cleanup(simulations, max_time, dt, n_atoms, pbc))
+    plan = asyncio.run(prepare_sim_cleanup(simulations, max_time, dt, n_atoms))
     print(plan)
     raise Exception("STOP")
         
