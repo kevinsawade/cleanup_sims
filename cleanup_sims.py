@@ -1438,7 +1438,7 @@ async def run_concat_command(
         logger.info(f"Deleting the trjcat file {out_file}.")
     out_file.unlink(missing_ok=True)
     logger.debug(f"Running command {cmd}.")
-    proc = await asyncio.subprocess.create_subprocess_exec(
+    proc = await asyncio.subprocess.create_subprocess_shell(
         cmd=cmd,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,

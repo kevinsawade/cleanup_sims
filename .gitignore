@@ -134,3 +134,6 @@ dmypy.json
 # development dirs
 input_sims/
 output_sims/
+
+# private files
+run.py
