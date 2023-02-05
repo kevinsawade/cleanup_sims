@@ -1627,21 +1627,39 @@ def cleanup_sims(
     inter_file_timestep_policy: InterFileTimestepPolicyType = "raise",
     file_exists_policy: FileExistsPolicyType = "raise",
     clean_copies: bool = False,
+    dry_run: bool = False,
     logfile: Optional[Path] = Path("sim_cleanup.log"),
     loglevel: int = logging.INFO,
 ) -> None:
     """Cleans up your messy simulations.
+    
+    Uses asyncio and logging to make the process fast
+    and transparent. Main use case is: Remove solvent and
+    change timestep.
+    
+    Features include:
+        * Caching of simulation times using metadata.npz files, so consecutive calls
+            to this function are accelerated.
+        * Using native GROMACS command (trjconv, trjcat) for working with 
+            xtc files. But if GROMACS does not play along, MDAnalysis will be used.
+        * Using a fast xdr reader to get only times (not coordinates) from input
+            trajectories.
+        * Keeping track of files on disk via imohash. If a file changes through some
+            external commands, the times and timesteps will be reloaded.
 
-    The `directories` argument can include truncation marks which will keep the
-    directory structure up to that point. For example, if you provide
-    ['/path/to/./sim_folder/production'] as `directories` and '/home/me/' as
-    `out_dir`, the simulation file without solvent can be found in
-    '/home/me/sim_folder/production/traj.xtc'.
+    The most important arguments are the `directories`, `out_dir`, `n_atoms`, `dt`,
+    `max_time`. Take some time and read how they are used in this script.
+    
+    Note:
+        The `directories` argument can include truncation marks which will keep the
+        directory structure up to that point. For example, if you provide
+        ['/path/to/./sim_folder/production'] as `directories` and '/home/me/' as
+        `out_dir`, the simulation file without solvent can be found in
+        '/home/me/sim_folder/production/traj.xtc'.
 
     Args:
-        directories (List[str]): A list of strings giving the directories that
-            will be searched for simulations containing solvent. Can have a
-            truncation mark to define the directory structure in `out_dir`.
+        directories (List[str]): The input directories.
+            You can provide as many as you like. You
         out_dir (Union[str, Path]): The directory to put the solvent-free
             simulations.
         dt (int): The timestep in ps to use for gromacs' `gmx trjconv`.
@@ -2089,6 +2107,11 @@ if __name__ == "__main__":
                 ced that part.""",
     )
     parser.add_argument(
+        "-dry-run",
+        action="store_true",
+        help="Setting dryrun true, does neither delete, nor write files.",
+    )
+    parser.add_argument(
         "-logfile",
         default="sim_cleanup.log",
         metavar="/path/to/logfile.log (will be created).",
@@ -2097,7 +2120,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-loglevel",
-        default="INFO",
+        default="WARNING",
         metavar="DEBUG, INFO, WARNING, CRITICAL",
         help="""The loglevel to use. Defaults to INFO. Set to DEBUG to get many \
                 more logs printed to console.""",
