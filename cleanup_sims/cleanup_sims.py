@@ -1104,21 +1104,24 @@ async def create_ndx_file(
     cmd = f"gmx make_ndx -f {tpr_file} -o {ndx_file}"
     ndx_add_group_stdin += "\nq\n"
     ndx_add_group_stdin = ndx_add_group_stdin.encode()
-    proc = await asyncio.subprocess.create_subprocess_shell(
-        cmd=cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-        stdin=asyncio.subprocess.PIPE,
-    )
-    stdout, stderr = await proc.communicate(ndx_add_group_stdin)
-    if not ndx_file.is_file():
-        print(proc.returncode)
-        print(proc.stderr)
-        print(proc.stdout)
-        print(cmd)
-        raise Exception(f"Could not create file {ndx_file}")
+    if not dryrun:
+        proc = await asyncio.subprocess.create_subprocess_shell(
+            cmd=cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            stdin=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate(ndx_add_group_stdin)
+        if not ndx_file.is_file():
+            print(proc.returncode)
+            print(proc.stderr)
+            print(proc.stdout)
+            print(cmd)
+            raise Exception(f"Could not create file {ndx_file}")
+        else:
+            print(f"Created {ndx_file}")
     else:
-        print(f"Created {ndx_file}")
+        logger.warning(f"DRY-RUN: Created ndx_file {ndx_file}")
 
     text = ndx_file.read_text()
     group_name = re.findall(r"\[(.*?)\]", text)[-1].strip()
@@ -1149,23 +1152,29 @@ async def run_command_and_check(
     # at this point we can be certain, that the out file is a bad file
     if out_file.is_file():
         logger.info(f"Deleting the trjcat file {out_file}.")
-    out_file.unlink(missing_ok=True)
-    logger.debug(f"Running command {cmd}.")
-    proc = await asyncio.subprocess.create_subprocess_shell(
-        cmd=cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-        stdin=asyncio.subprocess.PIPE,
-    )
-    stdout, stderr = await proc.communicate(stdin)
-    if not out_file.is_file():
-        print(proc.returncode)
-        print(stderr)
-        print(stdout)
-        print(cmd)
-        raise Exception(f"Could not create file {out_file}")
+    if not dryrun:
+        out_file.unlink(missing_ok=True)
     else:
-        logger.debug(f"Created {out_file}")
+        logger.warning(f"DRY-RUN: Deleting {out_file}.")
+    logger.debug(f"Running command {cmd}.")
+    if not dryrun:
+        proc = await asyncio.subprocess.create_subprocess_shell(
+            cmd=cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            stdin=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate(stdin)
+        if not out_file.is_file():
+            print(proc.returncode)
+            print(stderr)
+            print(stdout)
+            print(cmd)
+            raise Exception(f"Could not create file {out_file}")
+        else:
+            logger.debug(f"Created {out_file}")
+    else:
+        logger.warning(f"DRY-RUN: Created {out_file}")
 
     # run tests on the new file
     times = (await get_times_from_file(out_file))[:, 1]
@@ -1327,25 +1336,28 @@ async def mdanalysis_fallback(
     )
     tmp_tpr = Path(f"/tmp/{random_hash}.tpr")
     cmd = f"gmx convert-tpr -s {tpr_file} -o {tmp_tpr} -n {ndx_file}"
-    proc = await asyncio.subprocess.create_subprocess_shell(
-        cmd=cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-        stdin=asyncio.subprocess.PIPE,
-    )
-    stdout, stderr = await proc.communicate(input=(group + "\n").encode())
-    if not tmp_tpr.is_file():
-        print(proc.returncode)
-        print(stderr.decode())
-        print(stdout.decode())
-        print(cmd)
-        raise Exception(
-            f"Could not create file {tmp_tpr} which is bad, because "
-            f"gromacs did not produce the correct file, and I am "
-            f"already at the fallback procedure using MDAnalysis."
+    if not dryrun:
+        proc = await asyncio.subprocess.create_subprocess_shell(
+            cmd=cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            stdin=asyncio.subprocess.PIPE,
         )
+        stdout, stderr = await proc.communicate(input=(group + "\n").encode())
+        if not tmp_tpr.is_file():
+            print(proc.returncode)
+            print(stderr.decode())
+            print(stdout.decode())
+            print(cmd)
+            raise Exception(
+                f"Could not create file {tmp_tpr} which is bad, because "
+                f"gromacs did not produce the correct file, and I am "
+                f"already at the fallback procedure using MDAnalysis."
+            )
+        else:
+            logger.debug(f"created {tmp_tpr}")
     else:
-        logger.debug(f"created {tmp_tpr}")
+        logger.warning(f"DRY-RUN: Created {tmp_tpr}.")
 
     # load
     u = mda.Universe(str(tmp_tpr), str(input_file))
@@ -1361,10 +1373,13 @@ async def mdanalysis_fallback(
     timestamps = np.arange(b, ee + 1, dt)
 
     # write the timesteps
-    with mda.Writer(str(output_file), ag.n_atoms) as w:
-        for ts in u.trajectory:
-            if ts.time in timestamps:
-                w.write(ag)
+    if not dryrun:
+        with mda.Writer(str(output_file), ag.n_atoms) as w:
+            for ts in u.trajectory:
+                if ts.time in timestamps:
+                    w.write(ag)
+    else:
+        logger.warning(f"DRY-RUN: Created {output_file} with MDAnalysis fallback.")
 
 
 async def run_async_commands(
@@ -1436,22 +1451,28 @@ async def run_concat_command(
     # at this point we can be certain, that the out file is a bad file
     if out_file.is_file():
         logger.info(f"Deleting the trjcat file {out_file}.")
-    out_file.unlink(missing_ok=True)
-    logger.debug(f"Running command {cmd}.")
-    proc = await asyncio.subprocess.create_subprocess_shell(
-        cmd=cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
-    stdout, stderr = await proc.communicate()
-    if not out_file.is_file():
-        print(proc.returncode)
-        print(proc.stderr.decode())
-        print(proc.stdout.decode())
-        print(cmd)
-        raise Exception(f"Could not create file {out_file}")
+    if not dryrun:
+        out_file.unlink(missing_ok=True)
     else:
-        logger.debug(f"Created {out_file}")
+        logger.warning(f"DRY-RUN: Deleted {out_file}")
+    logger.debug(f"Running command {cmd}.")
+    if not dryrun:
+        proc = await asyncio.subprocess.create_subprocess_shell(
+            cmd=cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate()
+        if not out_file.is_file():
+            print(proc.returncode)
+            print(proc.stderr.decode())
+            print(proc.stdout.decode())
+            print(cmd)
+            raise Exception(f"Could not create file {out_file}")
+        else:
+            logger.debug(f"Created {out_file}")
+    else:
+        logger.warning(f"DRY-RUN: Created {out_file}")
 
     # run tests on the new file
     times =  (await get_times_from_file(out_file))[:, 1]
@@ -1570,23 +1591,29 @@ async def async_create_pdb(pdb_cmd: dict[str, Union[str, Path, int]],
             return
 
     if overwrite:
-        pdb_out_file.unlink(missing_ok=True)
+        if not dryrun:
+            pdb_out_file.unlink(missing_ok=True)
+        else:
+            logger.warning(f"DRY-RUN: Deleted {pdb_out_file}")
 
-    proc = await asyncio.subprocess.create_subprocess_shell(
-        cmd=pdb_cmd["cmd"],
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-        stdin=asyncio.subprocess.PIPE,
-    )
-    stdout, stderr = await proc.communicate(pdb_cmd["stdin"].encode())
-    if not pdb_out_file.is_file():
-        print(proc.returncode)
-        print(stderr.decode())
-        print(stdout.decode())
-        print(pdb_cmd["cmd"])
-        raise Exception(f"Could not create file {pdb_out_file}")
+    if not dryrun:
+        proc = await asyncio.subprocess.create_subprocess_shell(
+            cmd=pdb_cmd["cmd"],
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            stdin=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate(pdb_cmd["stdin"].encode())
+        if not pdb_out_file.is_file():
+            print(proc.returncode)
+            print(stderr.decode())
+            print(stdout.decode())
+            print(pdb_cmd["cmd"])
+            raise Exception(f"Could not create file {pdb_out_file}")
+        else:
+            print(f"Created {pdb_out_file}")
     else:
-        print(f"Created {pdb_out_file}")
+        logger.warning(f"DRY-RUN: Created {pdb_out_file}")
 
     n_atoms_in_file = mda.Universe(str(pdb_out_file)).atoms.n_atoms
     if n_atoms != -1:
@@ -1649,6 +1676,20 @@ def cleanup_sims(
 
     The most important arguments are the `directories`, `out_dir`, `n_atoms`, `dt`,
     `max_time`. Take some time and read how they are used in this script.
+
+    Although the script can be called from command line, I recommend writing a small
+    python script to call this function.
+
+    .. code-block::
+        :language: python
+
+        #!/usr/bin/env python
+        from cleanup_sims import cleanup_sims
+
+        inp_dirs = ["/path/to/to/dir/./sims1", "/path/to/./sims2"]
+        out_dir = ["/path/to/clean/sims"]
+
+        cleanup_sims(inp_dirs, out_dir, dt=50, max_time=500)
     
     Note:
         The `directories` argument can include truncation marks which will keep the
@@ -1658,27 +1699,92 @@ def cleanup_sims(
         '/home/me/sim_folder/production/traj.xtc'.
 
     Args:
-        directories (List[str]): The input directories.
-            You can provide as many as you like. You
-        out_dir (Union[str, Path]): The directory to put the solvent-free
-            simulations.
-        dt (int): The timestep in ps to use for gromacs' `gmx trjconv`.
-        max_time (int): The maximum time in ps to use. This time will be
-            used as the final -e flag for gromacs' `gmx trjconv`.
-        s (str): The name of the topology files in the directories. Similar
-            to gromac's -s flag, this defaults to 'topol.tpr'.
-        x (str): The name of the compressed trajectory files in the
-            directories. Similar to gromacs' -x flag, this defaults to
-            'traj_comp.xtc' but 'traj_comp.part0001.xtc', 'traj_comp.part0002.xtc'
-            and so on are also included.
-        pbc (str): The -pbc flag for gromacs' `gmx trjconv`. Defaults to 'nojump'
-            as this is usually the best option for single proteins. Choose 'whole'
-            for a simulation with multiple non-connected proteins.
-        deffnm (Optional[str]): Similar to gromacs' -deffnm flag. Sets default
-            filenames for the .tpr and .xtc files. But is superseded by
-            providing non-standard filenames for `s` and `x`.
-        trjcat (bool): Whether to concatenate the output files, if the
-            simulation is divided into parts (traj_comp.partXXXX.xtc).
+        directories (List[str]):The input directories. You can provide as many
+            as you like. You can include truncation marks similar to rsync in
+            the directory names. These truncation marks will be used to determine
+            the folder structure in the output_directory. Lets say provde
+            ./cleanup_sims.py -d /path/to/./first/simulation/xtcs -d /path/to/some/other/./simulation -o /output/dir,
+            the directories /output/dir/first/simulation/xtcs and
+            /output/dir/simulation will be created.
+        out_dir (Union[str, Path]): The output directory, if you use the
+            --trjcat flag, only the final concatenated file will be written to
+            the folders in the output directory. The cleaned partial xtc files
+            will be put into the same directory they are now in. If --trjcat is
+            not given, all *xtc files in the input directories will be put in
+            the folders created in the output directory.
+        dt (int): Similar to Gromacs' dt option. Only writes frames every frame
+            mod dt == 0 picoseconds. This is usually done using subprocess calls
+            to gmx trjconv. However, sometimes gromacs screws up and makes a
+            dt 100 ps to some dt 92 and some dt 8 ps. If -1 is given all frames
+            will be written to output. Defaults to -1.
+        max_time (int): The maximum time in ps to write trajectories. If some of
+            your simulations don't reach that time, an exception will be thrown.
+            If -1 is provided, the maximum time per xtcs in a directoyr is used.
+            Defaults to -1. If the --trjcat option is provided and the output
+            file fits the -dt and -max flags, the simulation cleanup of that
+            simulation is considered finished. So consecutive calls will only
+            change the file if the parameters -dt, -max (and -n-atom) change.
+        s (str): The .tpr files in the directories. Similar to gromacs' -s flag.
+            Will overwrite the values set with -deffnm. So setting
+            -deffnm production -s some_tpr_file.tpr will look for
+            some_tpr_file.tpr in the simulation directories.
+        x (str): The .xtc files in the directories. Similar to gromacs' -f flag
+            (which is -x in mdrun). Will overwrite the values set with -deffnm.
+            So setting -deffnm production -x my_traj.xtc will look for
+            my_traj.xtc, my_traj.part0001.xtc, my_traj.part0002.xtc and so on in
+            the simulation directories. Defaults to traj_comp.xtc.
+        pbc (str): What to provide for the periodic boundary correction of
+            trjconv. Is set to nojump (best for single molecules) per default.
+            Can alsobe explicitly set to None, if you don't want any pbc correction.
+            The pbc method will be used as the name of the output file.
+            So -pbc nojump will produce traj_nojump.xtc in your outout directories
+            (if -trjcat is set) or traj_comp_nojump.xtc,
+            traj_comp_nojump.part0001.xtc and so on, if -trjcat is not set.
+            If -deffnm or -x are set, the filenames of these will be used, so
+            that in theory my_traj_file_nojump.xtc and
+            my_traj_file_nojump.part0001.xtc are possible.
+        center (bool): Similar to gromacs trjconv's -[no]center option. If center
+            is provided the -ndx-group will be used both for centering and pbc
+            removal. If you want different groups for centering and output,
+            use the python function (e.g. by writing a short py
+            Use the python function and provide a string with newline chara\
+                cter (\\n) to use different groups for pbc and center.
+        output_group_and_center (str): The string to provide for gmx trjconv to
+            center and remove pbcs from. Can either be an integer (0 is most of
+            the times the system, 1 is most of the times the protein) or a string
+            like System, Protein, or a custom group read from the ndx file, which
+            is created if -create-ndx is provided. In any case, if you provide
+            -n-atoms, the algorithm will check the output and inform you, when
+            it contains a different number of atoms. This will allow you to
+            tweak your group selection or make sure, that Gromacs recognizes
+            your protein in group 1 correctly.
+        deffnm (Optional[str]): The default filename for the files in the -d
+            input directories. If you run your mdrun simulations with -deffnm
+            production, you should also provide production for this argument.
+            If -s or -x are set, this will be overwritten.
+        trjcat (bool): Whether to concatenate the trajectories from the input
+            directories into one long (-max) trajectory. If -trjcat is set, the
+            output directory will only contain one .xtc file. The outputs from
+            gmx trjconv will be written into the input directories along with
+            the inputxtc files.
+        create_pdb (bool): When given, the output directories will also contain
+            start.pdb files that are extracted from the first frame of the
+            simulations. These can be used to load the clean trajectries into
+            other tools.
+        create_ndx (bool): If gromac's doesn't recognize your protein as such
+            and the index group 1 (Protein) contains the wrong number of atoms,
+            you can create index.ndx files in the input directories with this
+            option. See the -ndx-group-in flag how to do so.
+        ndx_add_group_stdin (str): If you have non-standard residues in your
+            protein and they are not included in group 1 (protein) of the
+            standard index, you can add a custom group using this flag. If you
+            have two non-standard residues (LYQ and GLQ) you can create a new
+            group from the protein and the residue indices by providing the
+            string "Protein | GLQ | LYQ" (these are logical or). This will use
+            gmx make_ndx and the simulations .tpr file to create an index.ndx file.
+            The -ndx-group flag should then be "Protein_GLQ_LYQ". If you are not
+            sure, what to provide he re, play around with your tpr files and
+            make_ndx and then start this program with what you learned from there.
         per_file_timestep_policy (PerFileTimestepPolicyType): What to do if
             the timesteps in the input files are bad. Possibilities are:
                 * 'raise': Raise an Exception, if the timesteps are bad.
@@ -1714,7 +1820,10 @@ def cleanup_sims(
         clean_copies (bool): Gromacs will leave file copies (#traj_comp.xtc.1#)
             in the directories when output files are already there. Delete
             the copy files. Defaults to False.
-
+        dry_run (bool): If dry-run is set to True, no files will be written or
+            deleted.
+        logfile (str): Where to place the logfile at. Defaults to sim_cleanup.log.
+        loglevel (str): What level to log at. Defaults to WARNING.
 
     """
     pbcs_ = ["mol", "res", "atom", "nojump", "cluster", "whole", "None"]
@@ -1725,6 +1834,9 @@ def cleanup_sims(
 
     # get the logger
     logger = _get_logger(logfile, singular=True, loglevel=loglevel)
+
+    # set global dryrun
+    global dryrun
 
     # set the terminator
     logging.StreamHandler.terminator = "\n"
@@ -1939,7 +2051,7 @@ if __name__ == "__main__":
                 dt == 0 picoseconds. This is usually done using subprocess calls to\
                  gmx trjconv. However, sometimes gromacs screws up and makes a dt 1\
                 00 ps to some dt 92 and some dt 8 ps. If -1 is given all frames wil\
-                l be written to output. Defaults to -1""",
+                l be written to output. Defaults to -1.""",
     )
     parser.add_argument(
         "-max",
@@ -1953,7 +2065,7 @@ if __name__ == "__main__":
                 aults to -1. If the --trjcat option is provided and the output file\
                  fits the -dt and -max flags, the simulation cleanup of that simula\
                 tion is considered finished. So consecutive calls will only change \
-                the file if the parameters -dt, -max (and -n-atom) changes.""",
+                the file if the parameters -dt, -max (and -n-atom) change.""",
     )
     parser.add_argument(
         "-n-atoms",
@@ -1979,7 +2091,7 @@ if __name__ == "__main__":
         "-x",
         default="traj_comp.xtc",
         metavar="same as gmx mdrun -x",
-        help="""The .tpr files in the directories. Similar to gromacs' -f flag (\
+        help="""The .xtc files in the directories. Similar to gromacs' -f flag (\
                 which is -x in mdrun). Will overwrite the values set with -deffnm. \
                 So setting -deffnm production -x my_traj.xtc will look for my_traj.\
                 xtc, my_traj.part0001.xtc, my_traj.part0002.xtc and so on in the si\
@@ -1991,21 +2103,22 @@ if __name__ == "__main__":
         metavar="nojump, mol, whole, cluster, None",
         help="""What to provide for the periodic boundary correction of trjconv.\
                  Is set to nojump (best for single molecules) per default. Can also\
-                 be explicitly set to None, if you don't want any pbc correction.""",
+                 be explicitly set to None, if you don't want any pbc correction.\
+                 The pbc meth\
+                 od will be used as the name of the output file. So -pbc nojump will\
+                 produce traj_nojump.xtc in your outout directories (if -trjcat is \
+                 set) or traj_comp_nojump.xtc, traj_comp_nojump.part0001.xtc and so \
+                 on, if -trjcat is not set. If -deffnm or -x are set, the filenames \
+                 of these will be used, so that in theory my_traj_file_nojump.xtc an\
+                 d my_traj_file_nojump.part0001.xtc are possible.""",
     )
     parser.add_argument(
         "-center",
         action="store_true",
         help="""Similar to gromacs trjconv's -[no]center option. If center is pr\
-                ovided the -ndx-group will be used both for centering and pbc remov\
-                al. Use the python function and provide a string with newline chara\
-                cter (\\n) to use different groups for pbc and center. The pbc meth\
-                od will be used as the name of the output file. So -pbc nojump will\
-                 produce traj_nojump.xtc in your outout directories (if -trjcat is \
-                set) or traj_comp_nojump.xtc, traj_comp_nojump.part0001.xtc and so \
-                on, if -trjcat is not set. If -deffnm or -x are set, the filenames \
-                of these will be used, so that in theory my_traj_file_nojump.xtc an\
-                d my_traj_file_nojump.part0001.xtc are possible.""",
+                ovided the -ndx-group will be used both for centering and output\
+                Use the python function and provide a string with newline chara\
+                cter (\\n) to use different groups for pbc and center.""",
     )
     parser.add_argument(
         "-ndx-group",
