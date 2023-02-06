@@ -9,3 +9,4 @@ black
 isort
 pdoc3
 pytest-html
+requests
