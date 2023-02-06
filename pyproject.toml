@@ -1,25 +1,33 @@
+# mypy
 [tool.mypy]
 exclude = [
-    "development",
-    "encodermap/models/models_dep",
-    "encodermap/encodermap_tf1",
-    "encodermap/examples"
+    "cleanup_sims/tests"
 ]
 namespace_packages = true
 follow_imports = "silent"
 ignore_missing_imports = true
 packages = [
-    "encodermap"
+    "cleanup_sims"
 ]
 enable-incomplete-features = true
 plugins = "numpy.typing.mypy_plugin"
 
+# pdoc(3)
+[tool.pdoc]
+
+
+# pytest
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=cleanup_sims --cov-report=html --html=docs/build/htmlcov/html_report.html --self-contained-html"
+
+# coverage
 [tool.coverage.run]
 branch = true
-command_line = "-m unittest discover -s tests"
+command_line = "-m pytest"
 
 [tool.coverage.html]
-directory = "docs/source/_static"
+directory = "docs/build/htmlcov"
 title = "coverage_report"
 
 [tool.coverage.report]
@@ -44,6 +52,7 @@ omit = [
     "*__autograph_generated*"
 ]
 
+# black
 [tool.black]
 line-length = 88
 target-version = ['py39']
@@ -69,6 +78,7 @@ exclude = '''
 )
 '''
 
+# vulture
 [tool.vulture]
 exclude = ["tests/", "development/"]
 # ignore_decorators = ["@app.route", "@require_*"]
@@ -79,6 +89,7 @@ paths = ["encodermap"]
 sort_by_size = true
 verbose = false
 
+# isort
 [tool.isort]
 profile = "black"
 src_paths = ["encodermap", "tests"]
