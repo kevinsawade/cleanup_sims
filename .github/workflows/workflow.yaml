@@ -58,7 +58,7 @@ jobs:
           mv docs/build/cleanup_sims/cleanup_sims.html docs/build/index.html
 
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@4.1.4
+        uses: JamesIves/github-pages-deploy-action@4.4.1
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: docs/build/ # The folder the action should deploy.
