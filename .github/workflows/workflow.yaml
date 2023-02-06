@@ -37,7 +37,7 @@ jobs:
       - name: Install dependencies 🔧
         run: |
           python -m pip install --upgrade pip
-          echo 'Acquire::Retries "3";' > /etc/apt/apt.conf.d/80-retries
+          sudo echo 'Acquire::Retries "3";' > /etc/apt/apt.conf.d/80-retries
           sudo apt-get update
           sudo apt-get install --no-install-recommends --yes gromacs
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
