@@ -8,3 +8,4 @@ flake8
 black
 isort
 pdoc3
+pytest-html
