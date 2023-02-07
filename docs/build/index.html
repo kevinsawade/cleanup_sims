@@ -1,0 +1,3610 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>cleanup_sims.cleanup_sims API documentation</title>
+<meta name="description" content="Cleanup_sims.py …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>cleanup_sims.cleanup_sims</code></h1>
+</header>
+<section id="section-intro">
+<h1 id="cleanup_simspy">Cleanup_sims.py</h1>
+<p>Cleans up your messy simulations. Comes with its own XTC parser to skip
+atomic coordinates, as we're only interested in timestamps.</p>
+<h2 id="coverage-and-unittest-report">Coverage And Unittest Report</h2>
+<p>Access the coverage report under:</p>
+<p><a href="https://kevinsawade.github.io/cleanup_sims/htmlcov/index.html">https://kevinsawade.github.io/cleanup_sims/htmlcov/index.html</a></p>
+<p>Access the unittest report under:</p>
+<p><a href="https://kevinsawade.github.io/cleanup_sims/htmlcov/html_report.html">https://kevinsawade.github.io/cleanup_sims/htmlcov/html_report.html</a></p>
+<h1 id="command-line-usage">Command line usage:</h1>
+<pre><code class="language-raw">usage: cleanup_sims.py [-h] -d [/path/to/input/directory ...] -o
+                       /path/to/output/directory [-dt timestep in ps]
+                       [-max max time in ps]
+                       [-n-atoms n atoms in files for checks]
+                       [-s same as gmx trjconv -s] [-x same as gmx mdrun -x]
+                       [-pbc nojump, mol, whole, cluster, None] [-center]
+                       [-ndx-group OUTPUT_GROUP_AND_CENTER]
+                       [-deffnm same as gmx mdrun] [-trjcat] [-create-pdb]
+                       [-create-ndx]
+                       [-ndx-group-in System, Protein, 1, SOL, ... gmx group selection).]
+                       [-per-file-timestep-policy PER_FILE_TIMESTEP_POLICY]
+                       [-inter-file-timestep-policy INTER_FILE_TIMESTEP_POLICY]
+                       [-file-exists-policy raise, overwrite, continue, check_and_continue, check_and_overwrite]
+                       [-clean-copies] [-dry-run]
+                       [-logfile /path/to/logfile.log (will be created.]
+                       [-loglevel DEBUG, INFO, WARNING, CRITICAL]
+
+This script helps you clean up your simulations. It's pre tty elaborate, because
+Gromacs has a lot of ways it can scre w with simulation files. Normally files
+are always checked b efore some action is taken. If the program gets interrupted
+at some point it will continue where it left. So iterative c alls are
+encouraged.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -d [/path/to/input/directory ...]
+                        The input directories. You can provide as many as you
+                        like. You can include truncation marks similar to rsync
+                        in the directory name s. These truncation marks will be
+                        used to determine the folder stru cture in the
+                        output_directory. Lets say provde ./cleanup_sims.py -d
+                        /path/to/./first/simulation/xtcs -d
+                        /path/to/some/other/./simulati on -o /output/dir, the
+                        directories /output/dir/first/simulation/xtc s and
+                        /output/dir/simulation will be created.
+  -o /path/to/output/directory
+                        The output directory, if you use the --trjcat flag, only
+                        the fin al concatenated file will be written to the
+                        folders in the output d irectory. The cleaned partial
+                        xtc files will be put into the same d irectory they are
+                        now in. If --trjcat is not given, all *xtc files in the
+                        input directories will be put in the folders created in
+                        the output directory.
+  -dt timestep in ps    Similar to Gromacs' dt option. Only writes frames every
+                        frame mod dt == 0 picoseconds. This is usually done
+                        using subprocess calls to gmx trjconv. However,
+                        sometimes gromacs screws up and makes a dt 1 00 ps to
+                        some dt 92 and some dt 8 ps. If -1 is given all frames
+                        wil l be written to output. Defaults to -1.
+  -max max time in ps   The maximum time in ps to write trajectories. If some of
+                        your si mulations don't reach that time, an exception
+                        will be thrown. If -1 is provided, the maximum time per
+                        xtcs in a directoyr is used. Def aults to -1. If the
+                        --trjcat option is provided and the output file fits the
+                        -dt and -max flags, the simulation cleanup of that
+                        simula tion is considered finished. So consecutive calls
+                        will only change the file if the parameters -dt, -max
+                        (and -n-atom) change.
+  -n-atoms n atoms in files for checks
+                        Number of atoms that should be in the cleaned xtc files.
+                        If file s are already present in the output directory
+                        and don't match the r equested n_atoms, they will be
+                        overwritten.
+  -s same as gmx trjconv -s
+                        The .tpr files in the directories. Similar to gromacs'
+                        -s flag. Will overwrite the values set with -deffnm. So
+                        setting -deffnm prod uction -s some_tpr_file.tpr will
+                        look for some_tpr_file.tpr in the simulation
+                        directories.
+  -x same as gmx mdrun -x
+                        The .xtc files in the directories. Similar to gromacs'
+                        -f flag ( which is -x in mdrun). Will overwrite the
+                        values set with -deffnm. So setting -deffnm production
+                        -x my_traj.xtc will look for my_traj. xtc,
+                        my_traj.part0001.xtc, my_traj.part0002.xtc and so on in
+                        the si mulation directories. Defaults to traj_comp.xtc.
+  -pbc nojump, mol, whole, cluster, None
+                        What to provide for the periodic boundary correction of
+                        trjconv. Is set to nojump (best for single molecules)
+                        per default. Can also be explicitly set to None, if you
+                        don't want any pbc correction. The pbc meth od will be
+                        used as the name of the output file. So -pbc nojump will
+                        produce traj_nojump.xtc in your outout directories (if
+                        -trjcat is set) or traj_comp_nojump.xtc,
+                        traj_comp_nojump.part0001.xtc and so on, if -trjcat is
+                        not set. If -deffnm or -x are set, the filenames of
+                        these will be used, so that in theory
+                        my_traj_file_nojump.xtc an d
+                        my_traj_file_nojump.part0001.xtc are possible.
+  -center               Similar to gromacs trjconv's -[no]center option. If
+                        center is pr ovided the -ndx-group will be used both for
+                        centering and output Use the python function and provide
+                        a string with newline chara cter (\n) to use different
+                        groups for pbc and center.
+  -ndx-group OUTPUT_GROUP_AND_CENTER
+                        The string to provide for gmx trjconv to center and
+                        remove pbcs from. Can either be an integer (0 is most of
+                        the times the system, 1 is most of the times the
+                        protein) or a string like System, Protei n, or a custom
+                        group read from the ndx file, which is created if -c
+                        reate-ndx is provided. In any case, if you provide
+                        -n-atoms, the al gorithm will check the output and
+                        inform you, when it contains a di fferent number of
+                        atoms. This will allow you to tweak your group se
+                        lection or make sure, that Gromacs recognizes your
+                        protein in group 1 correctly.
+  -deffnm same as gmx mdrun
+                        The default filename for the files in the -d input
+                        directories. If you run your mdrun simulations with
+                        -deffnm production, you shou ld also provide production
+                        for this argument. If -s or -x are set, this will be
+                        overwritten.
+  -trjcat               Whether to concatenate the trajectories from the input
+                        directori es into one long (-max) trajectory. If -trjcat
+                        is set, the output d irectory will only contain one .xtc
+                        file. The outputs from gmx trjc onv will be written into
+                        the input directories along with the input xtc files.
+  -create-pdb           When given, the output directories will also contain
+                        start.pdb f iles that are extracted from the first frame
+                        of the simulations. Th ese can be used to load the clean
+                        trajectries into other tools.
+  -create-ndx           If gromac's doesn't recognize your protein as such and
+                        the index group 1 (Protein) contains the wrong number of
+                        atoms, you can crea te index.ndx files in the input
+                        directories with this option. See t he -ndx-group-in
+                        flag how to do so.
+  -ndx-group-in System, Protein, 1, SOL, ... (gmx group selection).
+                        If you have non-standard residues in your protein and
+                        they are n ot included in group 1 (protein) of the
+                        standard index, you can add a custom group using this
+                        flag. If you have two non-standard resid ues (LYQ and
+                        GLQ) you can create a new group from the protein and t
+                        he residue indices by providing the string &quot;Protein |
+                        GLQ | LYQ&quot; (t hese are logical or). This will use gmx
+                        make_ndx and the simulation s .tpr file to create an
+                        index.ndx file. The -ndx-group flag should then be
+                        &quot;Protein_GLQ_LYQ&quot;. If you are not sure, what to provide
+                        he re, play around with your tpr files and make_ndx and
+                        then start thi s program with what you learned from
+                        there.
+  -per-file-timestep-policy PER_FILE_TIMESTEP_POLICY
+                        Currently not used. The idea is to raise an Exception,
+                        if a -dt is not possible. Example: The file
+                        traj_comp.xtc has coordinates ev ery 20 ps but -dt 15
+                        was provided. This should include some logic t o offer
+                        alternatives.
+  -inter-file-timestep-policy INTER_FILE_TIMESTEP_POLICY
+                        Currently not in use. Should contain logic on how to
+                        deal discon tinuities between trajectory files.
+  -file-exists-policy raise, overwrite, continue, check_and_continue, check_and_overwrite
+                        What to do if a file already exists. Let's say the
+                        algorithm tri es to overwrite traj_nojump.xtc, but it
+                        already exists. If &quot;raise&quot; is provided, the algorithm
+                        will terminate and raise an exception, i f overwrite is
+                        provided, the file will be overwritten without addit
+                        ional checks. If continue if provided, the file is
+                        assumed to be go od (this can lead to unforseen
+                        consequences ie. different number of atoms in files,
+                        etc). If check_and_continue is provided, the file will
+                        be checked. If it is not ok, an exception will be
+                        raised. If c heck_and_overwrite is provided the file
+                        will only be overwritten, i f it is wrong (i.e. wrong
+                        -dt, wrong -n-atoms).
+  -clean-copies         Currently not in use anymore. Intention was to clean
+                        gromacs cop y files (#traj_comp.part0002.xtc.4#), but
+                        -file-exists-policy repla ced that part.
+  -dry-run              Setting dryrun true, does neither delete, nor write
+                        files.
+  -logfile /path/to/logfile.log (will be created).
+                        Where to log to. The logfile contains a lot of info.
+                        Especially, if something happens.
+  -loglevel DEBUG, INFO, WARNING, CRITICAL
+                        The loglevel to use. Defaults to INFO. Set to DEBUG to
+                        get many more logs printed to console.
+</code></pre>
+<h1 id="python-api">Python API</h1>
+<h2 id="example">Example</h2>
+<pre><code class="language-python">from sim_cleanup import sim_cleanup
+
+dir1 = &quot;/path/to/directory/./with/nested/sim/folders&quot;
+dir2 = &quot;/another/directory/with/nested/./sim/folders&quot;
+out_dir = &quot;/path/to/output&quot;
+
+sim_cleanup(
+    directories=[dir1, dir2],
+    out_dir=out_dir,
+    dt=10,
+    max_time=10000,
+    create_pdb=True,
+)
+
+# output dirs:
+# out_dir1 = &quot;/path/to/output/with/nested/sim/folders&quot;
+# out_dir2 = &quot;/path/to/output/sim/folders&quot;
+
+</code></pre>
+<h2 id="call-signature">Call signature</h2>
+<p>Click here: <code><a title="cleanup_sims.cleanup_sims.cleanup_sims" href="#cleanup_sims.cleanup_sims.cleanup_sims">cleanup_sims()</a></code></p>
+<h1 id="in-depth-explanation">In-depth explanation</h1>
+<h2 id="basic-concepts">Basic concepts</h2>
+<h3 id="a-good-simulation">A good simulation</h3>
+<p>In the following test cases, I will discern between timestamp and timestep.
+A timestamp is the time of the frame (xyz coordinates of the atoms). A timestep
+is the time between two timestamps. Based on this a normal simulation is
+made up from frames like this:</p>
+<pre><code>################################################################################
+Simulation 1:
+timestamps: |0   10   20   30   40   50   60   70   80   90   100   110   120
+timeline:   |&lt;------------------------file1.xtc----------------------------&gt;|
+timesteps:  |  10   10   10   10   10   10   10   10   10   10    10   10
+
+max_time_sim: 120
+unique_dt_sim: 10
+################################################################################
+</code></pre>
+<h3 id="overview-of-operations">Overview of operations</h3>
+<p>The following operations can be done on such simulations:
+* Remove solvent (this is always possible, as long as solvent and protein are
+indexed).
+* Choose a different max_time &lt; max_tim_sim.
+* Choose a different dt with unique_dt_sim % dt == 0.</p>
+<h3 id="files">Files</h3>
+<p>However, not all simulations are made up of a single file with nice timesteps.
+They might consist of multiple files with a different number of errors. Let's first
+talk about the files.</p>
+<p>Normally, GROMACS simulations run in -append mode, this means
+that, if the mdrun process gets interrupted and then another process is started, the
+program continues to write into the same xtc/trr/edr/log files. However, you might
+also run mdrun with the -noappend option. The first files produced by the prorgram
+are: (traj.part0001.trr, traj_comp.part0001.xtc, ener.part0001.edr). The next files
+are then (traj.part0002.xtc etc.). However, there's a mixed option. Let's call it
+append-noappend. This happens, if the first call to mdrun was done with -append, and
+consecutive calls to mdrun are done with -noappend. This will result in files with
+this pattern: traj_comp.xtc, traj_comp.part0002.xtc, traj_comp.part0003.xtc. In the
+remainder of this explanation, I will name the files only file1.xtc, file2.xtc, etc.
+The distinction between append/noappend/append-noappend is easy to implement.</p>
+<h2 id="cases">Cases</h2>
+<p>Some simulations might have multiple files:</p>
+<pre><code>################################################################################
+Simulation 2:
+timestamps: |0   10   20   30   40   50
+timeline:   |&lt;------file1.xtc--------&gt;|
+timesteps:  |  10   10   10   10   10
+
+timestamps:                              |60   70   80   90   100
+timeline:                                |&lt;------file2.xtc-----&gt;|
+timesteps:                               |   10   10   10   10
+
+timestamps:                                                      |110        120
+timeline:                                                        |&lt;-file3.xtc-&gt;|
+timesteps:                                                       |     10
+
+max_time_sim: 120
+unique_dt_sim: 10
+################################################################################
+</code></pre>
+<p>These simulations are also pretty easy to treat. With the trjconv and trjcat
+command, they can be sliced as needed. Let's say the user wants mas_time = 100 ps
+and dt = 20 ps. The file1.xtc will be used as input for trconv and a new file with
+the timestamps (0, 20, 40) will be written. From file2.xtc the timestamps (60, 80, 100)
+will be written. File3.xtc can be ignored. After the trjcat simulation 2 looks like this:</p>
+<pre><code>################################################################################
+Simulation 2 after trjconv:
+timestamps: |0        20        40
+timeline:   |&lt;-file1_nosolv.xtc-&gt;|
+timesteps:  |    20        20
+
+timestamps:                              |60        80        100
+timeline:                                |&lt;--file2_nosolv.xtc--&gt;|
+timesteps:                               |     20        20
+################################################################################
+</code></pre>
+<p>A call to gmx trjcat then will concatenate these files and result in:</p>
+<pre><code>################################################################################
+Simulation 2 after trjcat:
+timestamps: |0        20        40        60        80        100
+timeline:   |&lt;---------------file_nosolv.xtc-------------------&gt;|
+timesteps:  |    20        20        20        20        20
+################################################################################
+</code></pre>
+<p>After this the cleanup is finished. Problems come from simulations which can look
+like this:</p>
+<h3 id="problem-case-1-overlapping-timestamps-without-discarding">Problem case 1: Overlapping timestamps without discarding</h3>
+<p>To be honest, I have no idea, how these arrangements of files can be written
+by gmx mdrun. I am only here to clean them up.</p>
+<pre><code>################################################################################
+Simulation 3:
+timestamps: |0   10   20   30   40   50
+timeline:   |&lt;------file1.xtc--------&gt;|
+timesteps:  |  10   10   10   10   10
+
+timestamps:                30   40   50   60   70   80   90   100
+timeline:                  |&lt;--------------file2.xtc-----------&gt;|
+timesteps:                 |   10   10   10   10  10   10   10
+
+timestamps:                                                      |110        120
+timeline:                                                        |&lt;-file3.xtc-&gt;|
+timesteps:                                                       |     10
+
+max_time_sim: 120
+unique_dt_sim: 10
+################################################################################
+</code></pre>
+<p>Let's say, we want max_time = 120 ps and dt = 20 ps. In that case, we need to
+tell gmx trjconv to use a different start time (flag -b) for file2.xtc. The commands
+are:
+gmx trjconv -f file1.xtc -dt 20 -e 40
+gmx trjconv -f file2.xtc -dt 20 -b 60 -e 100
+gmx trjconv -f file3.xtc -dt 20 -b 120 -e 120</p>
+<h3 id="problem-case-2-uneven-timesteps-with-overlapping-timestamps">Problem case 2: Uneven timesteps with overlapping timestamps</h3>
+<p>This is another problem, which I don't have the willpower to trace back. Some
+gromacs simulations I did, had timesteps tike these:</p>
+<pre><code>################################################################################
+Simulation 3:
+timestamps: |0   8    20   28   40   48
+timeline:   |&lt;------file1.xtc--------&gt;|
+timesteps:  |  8   12    8    12   8
+
+timestamps:                28   40   48   60   68   80   88   100
+timeline:                  |&lt;--------------file2.xtc-----------&gt;|
+timesteps:                 |  12   8    12   8   12    8   12
+
+timestamps:                                                      |108        120
+timeline:                                                        |&lt;-file3.xtc-&gt;|
+timesteps:                                                       |     12
+
+max_time_sim: 120
+unique_dt_sim: [8, 12]
+################################################################################
+</code></pre>
+<p>For this simulation <strong>Choosing a dt of 10 ps is not possible</strong>. However, choosing a
+dt of 20 ps is still possible, because of how the timestamps are laid out. Cleanup_sims
+checks for that condition by asserting the following expression:</p>
+<p>.. code-block::
+:language: python:</p>
+<pre><code>assert len(np.arange(0, max_time, dt)) == np.unique(np.hstack([file.times for file in files])) % dt == 0).sum()
+</code></pre>
+<p>Doing so, we can test before calling any command, whether the requested dt can be
+realized with the provided data.</p>
+<h3 id="problem-case-3-uneven-timesteps-with-overlapping-trajectories">Problem case 3: Uneven timesteps with overlapping trajectories</h3>
+<p>The uneven timesteps can also propagate differently:</p>
+<pre><code>################################################################################
+Simulation 4:
+timestamps: |0   8    20   28   40   48
+timeline:   |&lt;------file1.xtc--------&gt;|
+timesteps:  |  8   12    8    12   8
+
+timestamps:                     40   52   60   72   80   92   100
+timeline:                       |&lt;---------file2.xtc-----------&gt;|
+timesteps:                      |  12    8   12   8   12    8
+
+timestamps:                                                      |100  108   120
+timeline:                                                        |&lt;-file3.xtc-&gt;|
+timesteps:                                                       |   8    12
+
+max_time_sim: 120
+unique_dt_sim: [8, 12]
+################################################################################
+</code></pre>
+<p>These input files can be used without problems.</p>
+<h3 id="problem-case-4-uneven-timesteps-with-breaking-alterations">Problem case 4: Uneven timesteps with breaking alterations</h3>
+<pre><code>################################################################################
+Simulation 5:
+timestamps: |0   8    20   28   40   48
+timeline:   |&lt;------file1.xtc--------&gt;|
+timesteps:  |  8   12    8    12   8
+
+timestamps:                     40   52   64   78   86   92   100
+timeline:                       |&lt;---------file2.xtc-----------&gt;|
+timesteps:                      |  12   12   12   8    8    8
+
+max_time_sim: 120
+unique_dt_sim: [8, 12]
+################################################################################
+</code></pre>
+<p>These input files can not be used to yield a concatenated trajectory with dt = 20 ps.
+The timestamps 60 and 80 are missing. There are simply no atomic coordinates
+at the respective timestamps available in the files.</p>
+<h3 id="problem-case-5-missing-times-between-files">Problem case 5: Missing times between files.</h3>
+<p>Another breaking problem is, when timestamps between trajectories are missing.</p>
+<pre><code>################################################################################
+Simulation 6:
+timestamps: |0   10   20   30   40   50
+timeline:   |&lt;------file1.xtc--------&gt;|
+timesteps:  |  10   10   10   10   10
+
+timestamps:                                       | 90      100
+timeline:                                         |&lt;-file2.xtc-&gt;|
+timesteps:                                        |     10
+
+max_time_sim: 120
+unique_dt_sim: 10
+################################################################################
+</code></pre>
+<p>It goes without saying, that these input files can not be used.</p>
+<h3 id="problem-case-6-redundant-files">Problem case 6: Redundant files.</h3>
+<p>There is also the possibility, that the input files contain redundant files.</p>
+<pre><code>################################################################################
+Simulation 7:
+timestamps: |0   10   20   30   40   50   60   70   80   90
+timeline:   |&lt;----------------file1.xtc------------------&gt;|
+timesteps:  |  10   10   10   10   10   10   10   10   10
+
+timestamps:                30   40   50   60   70
+timeline:                  |&lt;-----file2.xtc----&gt;|
+timesteps:                 |  10   10   10   10
+
+timestamps:                                                    |100    110   120
+timeline:                                                      |&lt;--file3.xtc--&gt;|
+timesteps:                                                     |   10     10
+
+max_time_sim: 120
+unique_dt_sim: 10
+################################################################################
+</code></pre>
+<p>In such cases, the file2.xtc can safely be discarded.</p>
+<h3 id="problem-case-7-and-8-one-timestamp-zero-timestap-trajs">Problem case 7 and 8: One-timestamp-zero-timestap trajs</h3>
+<p>Some xtc files written by gromacs contain only a single timestamp. Thus, they can
+only be used in edge cases.</p>
+<pre><code>################################################################################
+Simulation 8:
+timestamps: |0   10   20   30   40   50   60   70   80
+timeline:   |&lt;--------------file1.xtc---------------&gt;|
+timesteps:  |  10   10   10   10   10   10   10   10
+
+timestamps:                                              90
+timeline:                                          |&lt;file2.xtc&gt;|
+timesteps:
+
+timestamps:                                                    |100    110   120
+timeline:                                                      |&lt;--file3.xtc--&gt;|
+timesteps:                                                     |   10     10
+
+max_time_sim: 120
+unique_dt_sim: 10
+################################################################################
+</code></pre>
+<p>With dt = 20 ps, the file2.xtc can be discarded, with dt = 10 ps, it can not be
+discarded. In this case he commands for these files are:
+gmx trjconv -f file1.xtc -dt 10 -e 80
+gmx trjconv -f file2.xtc -dt 10 -b 90 -e 90
+gmx trjconv -f file3.xtc -dt 10 -b 100 -e 120</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+################################################################################
+# cleanup_sims.py Cleans up your messy simulations
+#
+# Copyright 2019-2022 University of Konstanz and the Authors
+#
+# Authors:
+# Kevin Sawade
+#
+# cleanup_sims.py is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 2.1
+# of the License, or (at your option) any later version.
+# This package is distributed in the hope that it will be useful to other
+# researches. IT DOES NOT COME WITH ANY WARRANTY WHATSOEVER; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU Lesser General Public License for more details.
+#
+# See &lt;http://www.gnu.org/licenses/&gt;.
+################################################################################
+&#34;&#34;&#34;# Cleanup_sims.py
+
+Cleans up your messy simulations. Comes with its own XTC parser to skip
+atomic coordinates, as we&#39;re only interested in timestamps.
+
+Coverage and Unittest Report
+----------------------------
+
+Access the coverage report under:
+
+https://kevinsawade.github.io/cleanup_sims/htmlcov/index.html
+
+Access the unittest report under:
+
+https://kevinsawade.github.io/cleanup_sims/htmlcov/html_report.html
+
+&#34;&#34;&#34;
+
+
+################################################################################
+# Imports
+################################################################################
+
+
+from __future__ import annotations
+
+import argparse
+import asyncio
+import fcntl
+import logging
+import math
+import os
+import random
+import re
+import shutil
+import string
+import struct
+import subprocess
+import sys
+import termios
+from io import StringIO
+from pathlib import Path
+from typing import Callable, Generator, List, Literal, Optional, Union
+
+import imohash
+import MDAnalysis as mda
+import MDAnalysis.transformations as trans
+import numpy as np
+from MDAnalysis.lib.formats.libmdaxdr import XTCFile
+
+################################################################################
+# Typing
+################################################################################
+
+
+PerFileTimestepPolicyType = Literal[
+    &#34;raise&#34;,
+    &#34;stop_iter_on_empty&#34;,
+    &#34;ignore&#34;,
+    &#34;compare_with_dt&#34;,
+    &#34;choose_next&#34;,
+]
+
+
+InterFileTimestepPolicyType = Literal[
+    &#34;raise&#34;,
+    &#34;ignore&#34;,
+    &#34;fix_conflicts&#34;,
+]
+
+
+FileExistsPolicyType = Literal[
+    &#34;raise&#34;,
+    &#34;overwrite&#34;,
+    &#34;continue&#34;,
+    &#34;check_and_continue&#34;,
+    &#34;check_and_overwrite&#34;,
+]
+
+
+################################################################################
+# Parser
+################################################################################
+
+
+class MyParser(argparse.ArgumentParser):
+    def error(self, message):
+        sys.stderr.write(&#34;error: %s\n&#34; % message)
+        self.print_help()
+        sys.exit(2)
+
+
+class MyHelpFormatter(argparse.HelpFormatter):
+    def __init__(
+        self, prog, indent_increment=2, max_help_position=24, width=None
+    ) -&gt; None:
+        super().__init__(prog, indent_increment, max_help_position, width)
+        self._width = 80
+
+
+class Capturing(list):
+    &#34;&#34;&#34;Class to capture print statements from function calls.
+
+    Examples:
+        &gt;&gt;&gt; # write a function
+        &gt;&gt;&gt; def my_func(arg=&#39;argument&#39;):
+        ...     print(arg)
+        ...     return(&#39;fin&#39;)
+        &gt;&gt;&gt; # use capturing context manager
+        &gt;&gt;&gt; with Capturing() as output:
+        ...     my_func(&#39;new_argument&#39;)
+        &gt;&gt;&gt; print(output)
+        [&#39;new_argument&#39;, &#34;&#39;fin&#39;&#34;]
+
+    &#34;&#34;&#34;
+
+    def __enter__(self):
+        self._stdout = sys.stdout
+        sys.stdout = self._stringio = StringIO()
+        return self
+
+    def __exit__(self, *args):
+        self.extend(self._stringio.getvalue().splitlines())
+        del self._stringio  # free up some memory
+        sys.stdout = self._stdout
+
+
+parser = MyParser(
+    prog=&#34;cleanup_sims.py&#34;,
+    description=&#34;&#34;&#34;This script helps you clean up your simulations. It&#39;s pre\
+                   tty elaborate, because Gromacs has a lot of ways it can scre\
+                   w with simulation files. Normally files are always checked b\
+                   efore some action is taken. If the program gets interrupted \
+                   at some point it will continue where it left. So iterative c\
+                   alls are encouraged.&#34;&#34;&#34;,
+    formatter_class=MyHelpFormatter,
+)
+parser.add_argument(
+    &#34;-d&#34;,
+    nargs=&#34;*&#34;,
+    required=True,
+    metavar=&#34;/path/to/input/directory&#34;,
+    dest=&#34;directories&#34;,
+    help=&#34;&#34;&#34;The input directories. You can provide as many as you like. You \
+            can include truncation marks similar to rsync in the directory name\
+            s. These truncation marks will be used to determine the folder stru\
+            cture in the output_directory. Lets say provde ./cleanup_sims.py -d\
+             /path/to/./first/simulation/xtcs -d /path/to/some/other/./simulati\
+            on -o /output/dir, the directories /output/dir/first/simulation/xtc\
+            s and /output/dir/simulation will be created.&#34;&#34;&#34;,
+)
+parser.add_argument(
+    &#34;-o&#34;,
+    required=True,
+    metavar=&#34;/path/to/output/directory&#34;,
+    dest=&#34;out_dir&#34;,
+    help=&#34;&#34;&#34;The output directory, if you use the --trjcat flag, only the fin\
+            al concatenated file will be written to the folders in the output d\
+            irectory. The cleaned partial xtc files will be put into the same d\
+            irectory they are now in. If --trjcat is not given, all *xtc files \
+            in the input directories will be put in the folders created in the \
+            output directory.&#34;&#34;&#34;,
+)
+parser.add_argument(
+    &#34;-dt&#34;,
+    default=-1,
+    type=int,
+    metavar=&#34;timestep in ps&#34;,
+    help=&#34;&#34;&#34;Similar to Gromacs&#39; dt option. Only writes frames every frame mod \
+            dt == 0 picoseconds. This is usually done using subprocess calls to\
+             gmx trjconv. However, sometimes gromacs screws up and makes a dt 1\
+            00 ps to some dt 92 and some dt 8 ps. If -1 is given all frames wil\
+            l be written to output. Defaults to -1.&#34;&#34;&#34;,
+)
+parser.add_argument(
+    &#34;-max&#34;,
+    default=-1,
+    dest=&#34;max_time&#34;,
+    type=int,
+    metavar=&#34;max time in ps&#34;,
+    help=&#34;&#34;&#34;The maximum time in ps to write trajectories. If some of your si\
+            mulations don&#39;t reach that time, an exception will be thrown. If -1\
+             is provided, the maximum time per xtcs in a directoyr is used. Def\
+            aults to -1. If the --trjcat option is provided and the output file\
+             fits the -dt and -max flags, the simulation cleanup of that simula\
+            tion is considered finished. So consecutive calls will only change \
+            the file if the parameters -dt, -max (and -n-atom) change.&#34;&#34;&#34;,
+)
+parser.add_argument(
+    &#34;-n-atoms&#34;,
+    default=-1,
+    dest=&#34;n_atoms&#34;,
+    type=int,
+    metavar=&#34;n atoms in files for checks&#34;,
+    help=&#34;&#34;&#34;Number of atoms that should be in the cleaned xtc files. If file\
+            s are already present in the output directory and don&#39;t match the r\
+            equested n_atoms, they will be overwritten.&#34;&#34;&#34;,
+)
+parser.add_argument(
+    &#34;-s&#34;,
+    default=&#34;topol.tpr&#34;,
+    dest=&#34;s&#34;,
+    metavar=&#34;same as gmx trjconv -s&#34;,
+    help=&#34;&#34;&#34;The .tpr files in the directories. Similar to gromacs&#39; -s flag. \
+            Will overwrite the values set with -deffnm. So setting -deffnm prod\
+            uction -s some_tpr_file.tpr will look for some_tpr_file.tpr in the \
+            simulation directories.&#34;&#34;&#34;,
+)
+parser.add_argument(
+    &#34;-x&#34;,
+    default=&#34;traj_comp.xtc&#34;,
+    metavar=&#34;same as gmx mdrun -x&#34;,
+    help=&#34;&#34;&#34;The .xtc files in the directories. Similar to gromacs&#39; -f flag (\
+            which is -x in mdrun). Will overwrite the values set with -deffnm. \
+            So setting -deffnm production -x my_traj.xtc will look for my_traj.\
+            xtc, my_traj.part0001.xtc, my_traj.part0002.xtc and so on in the si\
+            mulation directories. Defaults to traj_comp.xtc.&#34;&#34;&#34;,
+)
+parser.add_argument(
+    &#34;-pbc&#34;,
+    default=&#34;nojump&#34;,
+    metavar=&#34;nojump, mol, whole, cluster, None&#34;,
+    help=&#34;&#34;&#34;What to provide for the periodic boundary correction of trjconv.\
+             Is set to nojump (best for single molecules) per default. Can also\
+             be explicitly set to None, if you don&#39;t want any pbc correction.\
+             The pbc meth\
+             od will be used as the name of the output file. So -pbc nojump will\
+             produce traj_nojump.xtc in your outout directories (if -trjcat is \
+             set) or traj_comp_nojump.xtc, traj_comp_nojump.part0001.xtc and so \
+             on, if -trjcat is not set. If -deffnm or -x are set, the filenames \
+             of these will be used, so that in theory my_traj_file_nojump.xtc an\
+             d my_traj_file_nojump.part0001.xtc are possible.&#34;&#34;&#34;,
+)
+parser.add_argument(
+    &#34;-center&#34;,
+    action=&#34;store_true&#34;,
+    help=&#34;&#34;&#34;Similar to gromacs trjconv&#39;s -[no]center option. If center is pr\
+            ovided the -ndx-group will be used both for centering and output\
+            Use the python function and provide a string with newline chara\
+            cter (\\n) to use different groups for pbc and center.&#34;&#34;&#34;,
+)
+parser.add_argument(
+    &#34;-ndx-group&#34;,
+    default=None,
+    dest=&#34;output_group_and_center&#34;,
+    help=&#34;&#34;&#34;The string to provide for gmx trjconv to center and remove pbcs \
+            from. Can either be an integer (0 is most of the times the system, \
+            1 is most of the times the protein) or a string like System, Protei\
+            n, or a custom group read from the ndx file, which is created if -c\
+            reate-ndx is provided. In any case, if you provide -n-atoms, the al\
+            gorithm will check the output and inform you, when it contains a di\
+            fferent number of atoms. This will allow you to tweak your group se\
+            lection or make sure, that Gromacs recognizes your protein in group\
+             1 correctly.&#34;&#34;&#34;,
+)
+parser.add_argument(
+    &#34;-deffnm&#34;,
+    default=None,
+    metavar=&#34;same as gmx mdrun&#34;,
+    help=&#34;&#34;&#34;The default filename for the files in the -d input directories. \
+            If you run your mdrun simulations with -deffnm production, you shou\
+            ld also provide production for this argument. If -s or -x are set, \
+            this will be overwritten.&#34;&#34;&#34;,
+)
+parser.add_argument(
+    &#34;-trjcat&#34;,
+    action=&#34;store_true&#34;,
+    help=&#34;&#34;&#34;Whether to concatenate the trajectories from the input directori\
+            es into one long (-max) trajectory. If -trjcat is set, the output d\
+            irectory will only contain one .xtc file. The outputs from gmx trjc\
+            onv will be written into the input directories along with the input\
+             xtc files.&#34;&#34;&#34;,
+)
+parser.add_argument(
+    &#34;-create-pdb&#34;,
+    action=&#34;store_true&#34;,
+    help=&#34;&#34;&#34;When given, the output directories will also contain start.pdb f\
+            iles that are extracted from the first frame of the simulations. Th\
+            ese can be used to load the clean trajectries into other tools.&#34;&#34;&#34;,
+)
+parser.add_argument(
+    &#34;-create-ndx&#34;,
+    action=&#34;store_true&#34;,
+    help=&#34;&#34;&#34;If gromac&#39;s doesn&#39;t recognize your protein as such and the index\
+             group 1 (Protein) contains the wrong number of atoms, you can crea\
+            te index.ndx files in the input directories with this option. See t\
+            he -ndx-group-in flag how to do so.&#34;&#34;&#34;,
+)
+parser.add_argument(
+    &#34;-ndx-group-in&#34;,
+    default=None,
+    dest=&#34;ndx_add_group_stdin&#34;,
+    metavar=&#34;System, Protein, 1, SOL, ... (gmx group selection).&#34;,
+    help=&#34;&#34;&#34;If you have non-standard residues in your protein and they are n\
+            ot included in group 1 (protein) of the standard index, you can add\
+             a custom group using this flag. If you have two non-standard resid\
+            ues (LYQ and GLQ) you can create a new group from the protein and t\
+            he residue indices by providing the string &#34;Protein | GLQ | LYQ&#34; (t\
+            hese are logical or). This will use gmx make_ndx and the simulation\
+            s .tpr file to create an index.ndx file. The -ndx-group flag should\
+             then be &#34;Protein_GLQ_LYQ&#34;. If you are not sure, what to provide he\
+            re, play around with your tpr files and make_ndx and then start thi\
+            s program with what you learned from there.&#34;&#34;&#34;,
+)
+parser.add_argument(
+    &#34;-per-file-timestep-policy&#34;,
+    default=&#34;raise&#34;,
+    help=&#34;&#34;&#34;Currently not used. The idea is to raise an Exception, if a -dt \
+            is not possible. Example: The file traj_comp.xtc has coordinates ev\
+            ery 20 ps but -dt 15 was provided. This should include some logic t\
+            o offer alternatives.&#34;&#34;&#34;,
+)
+parser.add_argument(
+    &#34;-inter-file-timestep-policy&#34;,
+    default=&#34;raise&#34;,
+    help=&#34;&#34;&#34;Currently not in use. Should contain logic on how to deal discon\
+            tinuities between trajectory files.&#34;&#34;&#34;,
+)
+parser.add_argument(
+    &#34;-file-exists-policy&#34;,
+    default=&#34;raise&#34;,
+    metavar=&#34;raise, overwrite, continue, check_and_continue, check_and_overwrite&#34;,
+    help=&#34;&#34;&#34;What to do if a file already exists. Let&#39;s say the algorithm tri\
+            es to overwrite traj_nojump.xtc, but it already exists. If &#34;raise&#34; \
+            is provided, the algorithm will terminate and raise an exception, i\
+            f overwrite is provided, the file will be overwritten without addit\
+            ional checks. If continue if provided, the file is assumed to be go\
+            od (this can lead to unforseen consequences ie. different number of\
+             atoms in files, etc). If check_and_continue is provided, the file \
+            will be checked. If it is not ok, an exception will be raised. If c\
+            heck_and_overwrite is provided the file will only be overwritten, i\
+            f it is wrong (i.e. wrong -dt, wrong -n-atoms).&#34;&#34;&#34;,
+)
+parser.add_argument(
+    &#34;-clean-copies&#34;,
+    action=&#34;store_true&#34;,
+    help=&#34;&#34;&#34;Currently not in use anymore. Intention was to clean gromacs cop\
+            y files (#traj_comp.part0002.xtc.4#), but -file-exists-policy repla\
+            ced that part.&#34;&#34;&#34;,
+)
+parser.add_argument(
+    &#34;-dry-run&#34;,
+    action=&#34;store_true&#34;,
+    help=&#34;Setting dryrun true, does neither delete, nor write files.&#34;,
+)
+parser.add_argument(
+    &#34;-logfile&#34;,
+    default=&#34;sim_cleanup.log&#34;,
+    metavar=&#34;/path/to/logfile.log (will be created).&#34;,
+    help=&#34;&#34;&#34;Where to log to. The logfile contains a lot of info. Especially,\
+            if something happens.&#34;&#34;&#34;,
+)
+parser.add_argument(
+    &#34;-loglevel&#34;,
+    default=&#34;WARNING&#34;,
+    metavar=&#34;DEBUG, INFO, WARNING, CRITICAL&#34;,
+    help=&#34;&#34;&#34;The loglevel to use. Defaults to INFO. Set to DEBUG to get many \
+            more logs printed to console.&#34;&#34;&#34;,
+)
+
+
+################################################################################
+# Globals
+################################################################################
+
+
+__all__ = [&#34;cleanup_sims&#34;]
+_dryrun = True
+_this_module = sys.modules[__name__]
+
+# add the command line usage
+with Capturing() as output:
+    parser.print_help()
+output = &#34;\n&#34;.join(output)
+_this_module.__doc__ += f&#34;&#34;&#34;# Command line usage:
+
+```raw
+{output}
+```
+
+&#34;&#34;&#34;
+
+_this_module.__doc__ += f&#34;&#34;&#34;# Python API
+
+## Example
+
+
+```python
+from sim_cleanup import sim_cleanup
+
+dir1 = &#34;/path/to/directory/./with/nested/sim/folders&#34;
+dir2 = &#34;/another/directory/with/nested/./sim/folders&#34;
+out_dir = &#34;/path/to/output&#34;
+
+sim_cleanup(
+    directories=[dir1, dir2],
+    out_dir=out_dir,
+    dt=10,
+    max_time=10000,
+    create_pdb=True,
+)
+
+# output dirs:
+# out_dir1 = &#34;/path/to/output/with/nested/sim/folders&#34;
+# out_dir2 = &#34;/path/to/output/sim/folders&#34;
+
+```
+
+
+## Call signature
+
+Click here: `cleanup_sims`
+
+&#34;&#34;&#34;
+
+# add the unittest stuff
+test_module = Path(__file__).resolve().parent.parent / &#34;tests/test_sim_cleanup.py&#34;
+if test_module.is_file():
+    import ast
+
+    tree = ast.parse(test_module.read_text())
+    _this_module.__doc__ += ast.get_docstring(tree)
+
+
+# reset the argparser
+parser.formatter_class = argparse.HelpFormatter
+
+################################################################################
+# Util classes
+################################################################################
+
+
+class XTC:
+    def __init__(self, xtc_file):
+        self.filename = xtc_file
+
+    def __enter__(self):
+        self.file = XTCFile(str(self.filename), &#34;r&#34;)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.file.close()
+
+    def n_atoms(self):
+        frame = self.file.read()
+        return len(frame.x)
+
+    def __iter__(self):
+        while True:
+            try:
+                frame = self.file.read()
+                yield frame.step, frame.time
+            except StopIteration:
+                break
+
+
+################################################################################
+# Util functions
+################################################################################
+
+
+def update_gmx_environ(
+    version: Optional[str] = &#34;2020.6&#34;,
+    cuda: Optional[bool] = True,
+    AVX512: Optional[bool] = False,
+) -&gt; None:
+    &#34;&#34;&#34;Updates the current environment variables specified by a GMXRC.bash
+
+    Keyword Args:
+        version (str, optional): The gromacs version to use. You can provide
+            any flavour of &#39;2020.1&#39;, &#39;2021.2&#39;, etc. Defaults to &#39;2020.6&#39;.
+        cuda (bool, optional): Whether to use the cuda version.
+            Defaults to True.
+        AVX512 (bool, optional): Whether to use AVX512 vector extensions.
+            Defaults to False.
+
+    &#34;&#34;&#34;
+    print(&#34;Also disabling gmx quotes&#34;)
+    gmx_disable_quotes()
+    release = get_lsb()
+    if not cuda and not AVX512:
+        source_path = (
+            f&#34;/home/soft/gromacs/gromacs-{version}/inst/&#34;
+            &#34;shared_{release}/bin/GMXRC.bash&#34;
+        )
+    elif cuda and not AVX512:
+        source_path = (
+            f&#34;/home/soft/gromacs/gromacs-{version}/inst/&#34;
+            f&#34;cuda_shared_{release}/bin/GMXRC.bash&#34;
+        )
+    elif not cuda and AVX512:
+        raise Exception(
+            &#34;AVX512 True is only possible&#34; &#34;with cuda True at the same time.&#34;
+        )
+    else:
+        source_path = (
+            f&#34;/home/soft/gromacs/gromacs-{version}/inst/&#34;
+            f&#34;cuda_shared_AVX_512_{release}/bin/GMXRC.bash&#34;
+        )
+    if not os.path.isfile(source_path):
+        raise Exception(f&#34;Could not find GMXRC.bash at {source_path}&#34;)
+    print(f&#34;sourcing {source_path} ...&#34;)
+    shell_source(source_path)
+
+
+def get_lsb() -&gt; str:
+    &#34;&#34;&#34;Get the current lsb of Ubuntu systems.
+
+    Returns:
+        str: The current lsb. Most often &#39;18.04&#39;, or &#39;20.04&#39;.
+
+    &#34;&#34;&#34;
+    with open(&#34;/etc/lsb-release&#34;, &#34;r&#34;) as f:
+        lines = f.read().splitlines()
+    for line in lines:
+        if &#34;DISTRIB_RELEASE&#34; in line:
+            return line.split(&#34;=&#34;)[-1]
+    else:
+        raise Exception(
+            &#34;Could not determine LSB release.&#34; &#34; Maybe you&#39;re not using Ubuntu?&#34;
+        )
+
+
+def shell_source(script: str):
+    &#34;&#34;&#34;Sometime you want to emulate the action of &#34;source&#34; in bash,
+    settings some environment variables. Here is a way to do it.
+
+    &#34;&#34;&#34;
+    pipe = subprocess.Popen(&#34;. %s; env&#34; % script, stdout=subprocess.PIPE, shell=True)
+    _ = pipe.communicate()[0]
+    _ = [line.decode() for line in _.splitlines()]
+    output = []
+    for i in _:
+        if &#34;eval&#34; in i:
+            break
+        output.append(i)
+    try:
+        env = dict((line.split(&#34;=&#34;, 1) for line in output))
+    except ValueError as e:
+        number = int(re.search(&#34;#\d*&#34;, str(e)).group().replace(&#34;#&#34;, &#34;&#34;))
+        print(output[number])
+        print(output[number - 1])
+        raise
+    os.environ.update(env)
+
+
+def gmx_disable_quotes() -&gt; None:
+    &#34;&#34;&#34;Sets a gmx environment variable. True = Quotes, False = No Quotes.&#34;&#34;&#34;
+    os.environ[&#34;GMX_NO_QUOTES&#34;] = &#34;1&#34;
+
+
+ORDINAL = lambda n: &#34;%d%s&#34; % (
+    n,
+    &#34;tsnrhtdd&#34;[(n // 10 % 10 != 1) * (n % 10 &lt; 4) * n % 10 :: 4],
+)
+
+
+def _sort_files_by_part_and_copy(file: Union[Path, str]) -&gt; int:
+    file = Path(file)
+    if &#34;#&#34; in str(file):
+        raise Exception(&#34;Can currenlty not sort parts and copies of files.&#34;)
+    filename = str(file.name)
+    if &#34;part&#34; not in filename:
+        return 1
+    else:
+        return int(filename.split(&#34;.&#34;)[1][4:])
+
+
+def parts_and_copies_generator(files: List[Union[str, Path]]) -&gt; Generator:
+    return sorted(files, key=_sort_files_by_part_and_copy)
+
+
+def _get_start_end_in_dt(
+    start_time: float, end_time: float, dt: int
+) -&gt; tuple[int, int]:
+    if dt == -1:
+        return start_time, end_time
+    start = int(math.ceil((start_time) / float(dt))) * dt
+    end = int(math.floor((end_time) / float(dt))) * dt
+    return start, end
+
+
+def map_in_and_out_files(
+    directories: Union[List[str]],
+    out_dir: Union[str, Path],
+    x: str = &#34;traj_comp.xtc&#34;,
+    pbc: str = &#34;nojump&#34;,
+    deffnm: Optional[str] = None,
+    trjcat: bool = True,
+) -&gt; dict[Path, dict[Path, Path]]:
+    &#34;&#34;&#34;Maps in and out files.&#34;&#34;&#34;
+    mapped_sims = {}
+
+    # if deffnm is not None and traj_comp was
+    # not manually redefined change x
+    if deffnm is not None and x == &#34;traj_comp.xtc&#34;:
+        x = deffnm + &#34;.xtc&#34;
+    base_filename = x.split(&#34;.&#34;)[0]
+
+    # fill the dict
+    for directory in directories:
+        mapped_sims[Path(directory)] = {}
+        if trjcat:
+            # if trjcat put the &#34;temporary files&#34; into the parent dir.
+            if &#34;_comp&#34; in base_filename:
+                cat_base_filename = base_filename.replace(&#34;_comp&#34;, &#34;&#34;)
+            else:
+                cat_base_filename = base_filename
+            out_file = (
+                Path(out_dir)
+                / directory.split(&#34;/./&#34;)[1]
+                / f&#34;{cat_base_filename}_{pbc}.xtc&#34;
+            )
+            out_dir_ = Path(directory).parent
+            mapped_sims[Path(directory)][&#34;trjcat&#34;] = out_file
+        else:
+            mapped_sims[Path(directory)][&#34;trjcat&#34;] = False
+            out_dir_ = Path(out_dir)
+        files = Path(directory).glob(x.replace(&#34;.xtc&#34;, &#34;*.xtc&#34;))
+        p = re.compile(x.rstrip(&#34;.xtc&#34;) + r&#34;(.xtc|.part\d{4}.xtc)&#34;)
+        files = filter(lambda x: p.search(str(x)) is not None, files)
+        files = list(parts_and_copies_generator(files))
+
+        # if only one sim, put that into output. No cat
+        if len(files) == 1:
+            mapped_sims[Path(directory)][&#34;trjcat&#34;] = False
+            out_dir_ = Path(out_dir)
+            file = files[0]
+            if &#34;/./&#34; in str(directory):
+                out_file = Path(out_dir_) / directory.split(&#34;/./&#34;)[1]
+                out_file /= file.name.replace(base_filename, base_filename + f&#34;_{pbc}&#34;)
+            else:
+                out_file = Path(out_dir_) / file.name.replace(
+                    base_filename, base_filename + f&#34;_{pbc}&#34;
+                )
+            out_file = Path(str(out_file).replace(&#34;_comp&#34;, &#34;&#34;))
+            mapped_sims[Path(directory)][file] = out_file
+
+        # put the tmp sims into input, then cat
+        else:
+            for file in files:
+                if &#34;/./&#34; in str(directory):
+                    out_file = Path(out_dir_) / directory.split(&#34;/./&#34;)[1]
+                    out_file /= file.name.replace(
+                        base_filename, base_filename + f&#34;_{pbc}&#34;
+                    )
+                else:
+                    out_file = Path(out_dir_) / file.name.replace(
+                        base_filename, base_filename + f&#34;_{pbc}&#34;
+                    )
+                mapped_sims[Path(directory)][file] = out_file
+    return mapped_sims
+
+
+def _get_logger(
+    logfile: Path = Path(&#34;sim_cleanup.log&#34;),
+    loggerName: str = &#34;SimCleanup&#34;,
+    singular: bool = False,
+    loglevel: int = logging.INFO,
+) -&gt; logging.Logger:
+    if not singular:
+        raise Exception
+    logger = logging.getLogger(name=loggerName)
+    logger.setLevel(logging.DEBUG)
+
+    logger.handlers = []
+
+    # console
+    fmt = &#34;%(name)s %(levelname)8s [%(asctime)s]: %(message)s&#34;
+    formatter = logging.Formatter(fmt, datefmt=&#34;%Y-%m-%dT%H:%M:%S%z&#34;)
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    console_handler.setLevel(loglevel)
+    logger.addHandler(console_handler)
+
+    # file
+    fmt = (
+        &#39;%(name)s %(levelname)8s [%(asctime)s] [&#34;%(pathname)s:&#39;
+        &#39;%(lineno)s&#34;, in %(funcName)s]: %(message)s&#39;
+    )
+    formatter = logging.Formatter(fmt, datefmt=&#34;%Y-%m-%dT%H:%M:%S%z&#34;)
+    file_handler = logging.FileHandler(logfile)
+    file_handler.setFormatter(formatter)
+    file_handler.setLevel(logging.DEBUG)
+    logger.addHandler(file_handler)
+    return logger
+
+
+async def get_times_from_file(file: Path) -&gt; np.ndarray:
+    with XTC(file) as f:
+        times = np.vstack([d for d in f])
+    return times
+
+
+def get_atoms_from_file(file: Path) -&gt; int:
+    with XTC(file) as f:
+        n_atoms = f.n_atoms()
+    return n_atoms
+
+
+async def check_file_with_dataset(
+    file: Path,
+    out_file: Path,
+    data: dict[Path, Union[str, int, bool, np.ndarray]],
+    metadata: dict[Union[str, Path], str],
+    n_atoms: int = -1,
+    file_exists_policy: FileExistsPolicyType = &#34;raise&#34;,
+    logger: Optional[logging.Logger] = None,
+) -&gt; dict:
+    if logger is None:
+        logger = _get_logger()
+    # data whe have the should be in metadata we have the is
+
+    if file == &#34;trjcat&#34;:
+        return {}
+
+    # for files that have been removed from data, as they ware one-timestamp-files
+    if file not in data:
+        return {}
+
+    data = data[file]
+
+    command = {
+        &#34;inp_file&#34;: file,
+        &#34;out_file&#34;: out_file,
+        &#34;dt&#34;: data[&#34;dt&#34;],
+        &#34;b&#34;: data[&#34;start&#34;],
+        &#34;e&#34;: data[&#34;end&#34;],
+        &#34;run&#34;: True,
+    }
+
+    if not out_file.is_file():
+        logger.info(f&#34;The file {out_file} does not exist. I will create it.&#34;)
+        return {file: command}
+
+    if out_file.is_file():
+        if file_exists_policy == &#34;raise&#34;:
+            raise Exception(
+                f&#34;File {out_file} already exists. &#34;
+                f&#34;Due to the chosen `{file_exists_policy=}` &#34;
+                &#34;I have raised an Exception.&#34;
+            )
+        elif file_exists_policy == &#34;overwrite&#34;:
+            logger.debug(f&#34;Will overwrite {out_file} without checking.&#34;)
+            return {file: command}
+        elif file_exists_policy == &#34;continue&#34;:
+            logger.debug(
+                f&#34;File {out_file} already exists. Continuing. This can &#34;
+                f&#34;lead to problems later on.&#34;
+            )
+            return {}
+        elif file_exists_policy == &#34;check_and_overwrite&#34;:
+            logger.debug(f&#34;Will overwrite {out_file} when checks fail.&#34;)
+        elif file_exists_policy == &#34;check_and_continue&#34;:
+            logger.debug(f&#34;Will check {out_file} and raise, when checks fail.&#34;)
+        else:
+            raise Exception(f&#34;Unkown file_exists_policy: {file_exists_policy}&#34;)
+
+    # first check the atoms of the output file
+    n_atoms_in_file = get_atoms_from_file(out_file)
+    n_atoms_ok = True if n_atoms == -1 else n_atoms_in_file == n_atoms
+    if n_atoms_ok:
+        logger.debug(
+            f&#34;The number of atoms in the output file {out_file} is &#34;
+            f&#34;correct ({n_atoms}).&#34;
+        )
+    else:
+        logger.info(
+            f&#34;The number of atoms in the output file {out_file} is &#34;
+            f&#34;incorrect ({n_atoms} was requested, {n_atoms_in_file=}). &#34;
+            f&#34;I will still continue to check the times, maybe I am &#34;
+            f&#34;just overwriting this file.&#34;
+        )
+
+    # check whether the output file has the correct times specified by the data
+    times_in_output = metadata[out_file][:, 1].astype(int)
+    times_should_be = np.arange(data[&#34;start&#34;], data[&#34;end&#34;] + 1, data[&#34;dt&#34;])
+    time_ok = np.array_equal(times_in_output, times_should_be)
+    timesteps_in_output = np.unique(times_in_output[1:] - times_in_output[:-1])
+
+    if not time_ok:
+        logger.info(
+            f&#34;The times (start: {times_in_output[0]}, end: &#34;
+            f&#34;{times_in_output[-1]}, dt: {timesteps_in_output}) in &#34;
+            f&#34;the output file {out_file} are different, than &#34;
+            f&#34;the requested times (start: {data[&#39;start&#39;]}, end: {data[&#39;end&#39;]}, &#34;
+            f&#34;dt: {data[&#39;dt&#39;]}). Based on the chosen `file_exists_policy`, &#34;
+            f&#34;I will overwrite or skip this file, or raise an Exception.&#34;
+        )
+
+    # make the output
+    file_ok = time_ok and n_atoms_ok
+    if file_ok:
+        logger.info(f&#34;The file {out_file} is ok. No need to change it.&#34;)
+        return {}
+
+    if not file_ok and file_exists_policy == &#34;check_and_continue&#34;:
+        raise Exception(
+            f&#34;The file {out_file} does not adhere to &#34;
+            f&#34;the requested {data[&#39;start&#39;]=}, {data[&#39;end&#39;]=} &#34;
+            f&#34;and {data[&#39;dt&#39;]=}, it has these characteristics: &#34;
+            f&#34;(start: {times_in_output[0]}, end: {times_in_output[-1]}, &#34;
+            f&#34;dt: {timesteps_in_output}). Also check the logs in &#34;
+            f&#34;{logger.handlers[1].baseFilename}. &#34;
+            f&#34;Set `file_exists_policy` to &#39;overwrite&#39; or &#34;
+            f&#34;&#39;check_and_overwrite&#39; to overwrite this file.&#34;
+        )
+
+    logger.info(
+        f&#34;I will overwrite the file {out_file} which has the wrong times &#34;
+        f&#34;start: {times_in_output[0]} ps, end: {times_in_output[1]} ps, &#34;
+        f&#34;dt: {timesteps_in_output} ps, with the correct times: &#34;
+        f&#34;start: {data[&#39;start&#39;]} ps, end: {data[&#39;end&#39;]} ps and &#34;
+        f&#34;dt: {data[&#39;dt&#39;]} ps.&#34;
+    )
+    return {file: command}
+
+
+def feasibility_check(
+    metadata: dict[str, np.ndarray],
+    input_files: list[Path],
+    dt: int = -1,
+    max_time: int = -1,
+    logger: Optional[logging.Logger] = None,
+) -&gt; bool:
+    &#34;&#34;&#34;Checks whether the input files and the dt and max time are feasible.
+
+    Args:
+        ds (xr.Dataset): The dataset generated in the `write_and_check_times`
+            function.
+        input_files (list[str]): The files to check, as the dataset contains
+            input, output (and sometimes the final trjcat file).
+        dt (int): The timestep requested.
+        max_time (int): The max_time requested.
+
+    Returns:
+        bool: Wheter possible or not.
+
+    &#34;&#34;&#34;
+    if logger is None:
+        logger = _get_logger()
+    if dt == -1 and max_time == -1:
+        return True
+
+    # all timestamps in the input data
+    input_times = np.hstack([v[:, 1] for k, v in metadata.items() if k in input_files])
+
+    # check the maxtime
+    if max_time != -1:
+        max_time_files = np.max(input_times)
+        if max_time_files &lt; max_time:
+            logger.warning(
+                f&#34;The simulation at {Path(input_files[0]).parent} can&#39;t &#34;
+                f&#34;be used with a {max_time=}, because the max time all &#34;
+                f&#34;xtc files reach only goes up to {max_time_files=}.&#34;
+            )
+            return False
+
+    # number of dt timesteps
+    if dt != -1:
+        if max_time == -1:
+            max_time = np.max(input_times)
+        n_timesteps = math.ceil(max_time / dt) + 1
+        check_timestamps = input_times[input_times &lt;= max_time]
+        n_timesteps_in_files = (np.unique(check_timestamps) % dt == 0).sum()
+        if n_timesteps != n_timesteps_in_files:
+            logger.warning(
+                f&#34;The simulation at {Path(input_files[0]).parent} can&#39;t &#34;
+                f&#34;be used with a {dt=}, because the number of timesteps &#34;
+                f&#34;with a max_time of {max_time=} needs to be {n_timesteps=}, &#34;
+                f&#34;but the files allow for {n_timesteps_in_files=}. These timesteps &#34;
+                f&#34;are the result of these timestamps:\n\n{check_timestamps}\n\n&#34;
+                f&#34;{(np.unique(input_times) % dt == 0)=}&#34;
+            )
+            return False
+
+    logger.info(
+        f&#34;The files in {input_files[0].parent} ({[f.name for f in input_files]})&#34;
+        f&#34;can be used with a {max_time=} and a {dt=}.&#34;
+    )
+
+    return True
+
+
+def get_start_end_in_dt(
+    metadata: dict[Union[Path, str], np.ndarray],
+    input_files: list[Path],
+    dt: int = -1,
+    max_time: int = -1,
+    logger: Optional[logging.Logger] = None,
+) -&gt; dict[Path, Union[str, int, bool, np.ndarray]]:
+    if logger is None:
+        logger = _get_logger()
+    out = {}
+
+    for i, file in enumerate(input_files):
+        out[file] = {
+            &#34;start&#34;: None,
+            &#34;end&#34;: None,
+            &#34;check&#34;: False,
+            &#34;run&#34;: False,
+            &#34;dt&#34;: dt,
+            &#34;times&#34;: None,
+        }
+        times = metadata[file][:, 1]
+        start, end = times[[0, -1]]
+        if max_time != -1:
+            if end &gt; max_time:
+                logger.debug(
+                    f&#34;File {file=} ends at {end=} ps, which is larger than the &#34;
+                    f&#34;requested {max_time=} ps. I will truncate the file at {max_time}&#34;
+                )
+                end = max_time
+        start_dt, end_dt = _get_start_end_in_dt(start, end, dt)
+        if i != 0:
+            previous_file = input_files[i - 1]
+            previous_times = metadata[previous_file][:, 1]
+            previous_start, previous_end = previous_times[[0, -1]]
+            previous_start_dt = out[Path(previous_file)][&#34;start&#34;]
+            previous_end_dt = out[Path(previous_file)][&#34;end&#34;]
+
+            # check whether the file is a one timestamp file
+            if len(times) == 1:
+                logger.debug(
+                    f&#34;The file {file} is a single-timestep file. It is &#34;
+                    f&#34;safe to discard such files in the algorithm.&#34;
+                )
+                out.pop(file)
+                continue
+
+            # compare with previous
+            if end_dt &lt; previous_end_dt and start_dt &lt; previous_end_dt:
+                logger.debug(
+                    f&#34;Comparing the files {previous_file=} and {file=} resulted in &#34;
+                    f&#34;a discarding of the file {file=}. This file starts at {start=} ps&#34;
+                    f&#34;and ends at {end=} pico seconds. The chosen times in mutliples &#34;
+                    f&#34;of {dt=} are {start_dt=} and {end_dt=}. The end of this file is &#34;
+                    f&#34;earlier than the end of the previous file ({previous_end=} ps) &#34;
+                    f&#34;and thus this file carries no new frames and can be discarded.&#34;
+                )
+                out.pop(file)
+                continue
+            elif start_dt &lt; previous_end_dt and end_dt &gt; previous_end_dt:
+                logger.debug(
+                    f&#34;Comparing the files {previous_file=} and {file=} resulted &#34;
+                    f&#34;in an adjusted timestep. The file starts at {start=} ps&#34;
+                    f&#34;and ends at {end=} pico seconds. The chosen times in mutliples &#34;
+                    f&#34;of {dt=} are {start_dt=} and {end_dt=}. The start of this file is &#34;
+                    f&#34;earlier than the end of the previous file ({previous_end=} ps) &#34;
+                    f&#34;and thus I am adjusting the start_dt to {(previous_end_dt + dt)=}&#34;
+                )
+                start_dt = previous_end_dt + dt
+            else:
+                logger.debug(f&#34;Comparing the files {previous_file=} and {file=}&#34;)
+                if start_dt - previous_end_dt != dt:
+                    msg = (
+                        f&#34;Can&#39;t concatenate using the files {previous_file=} and {file=}. &#34;
+                        f&#34;The time-step between these two files is {start=}-{previous_end=}=&#34;
+                        f&#34;{(start - previous_end)} ps, which does not correspond to the&#34;
+                        f&#34;requested {dt=}. The last times of the previous file: &#34;
+                        f&#34;{previous_times[-5:]=} and the first times in file: &#34;
+                        f&#34;{times[:5]}. This is a reason to stop the algorithm here.&#34;
+                    )
+                    raise Exception(msg)
+                else:
+                    logger.debug(
+                        f&#34;Can concatenate the files {previous_file=} and &#34;
+                        f&#34;{file=} with the requested {dt=}.&#34;
+                    )
+
+        # make sure the times are obtainable in the file
+        should_be_times = np.arange(start_dt, end_dt + 1, dt)
+        if not np.all(np.isin(should_be_times, times)):
+            missing_timestamps = should_be_times[~np.isin(should_be_times, times)]
+            msg = (
+                f&#34;The file {file=} can&#39;t be used with a start_time of {start_dt=} ps &#34;
+                f&#34;and an end_time of {end_dt=} ps. This would require the timestamps &#34;
+                f&#34;{should_be_times=} to all be present in the file. However, these &#34;
+                f&#34;timestamps are not in the file: {missing_timestamps=}. You &#34;
+                f&#34;can check the corresponding logs or use `gmx check` to see &#34;
+                f&#34;what&#39;s wrong here.&#34;
+            )
+            raise Exception(msg)
+
+        # write to the out-dict
+        out[Path(file)] = {
+            &#34;start&#34;: start_dt,
+            &#34;end&#34;: end_dt,
+            &#34;check&#34;: True,
+            &#34;run&#34;: False,
+            &#34;dt&#34;: dt,
+            &#34;times&#34;: should_be_times,
+        }
+
+    return out
+
+
+async def update_times_on_wrong_hash(
+    metadata: dict[str : np.ndarray],
+    metadata_file: Path,
+    logger: Optional[logging.logger] = None,
+) -&gt; dict[str, np.ndarray]:
+    &#34;&#34;&#34;Updates the times on the files, that have changed hashes&#34;&#34;&#34;
+    if logger is None:
+        logger = _get_logger()
+    changed_hashes = []
+    keys = list(metadata.keys())
+    for file in keys:
+        if file == &#34;file_hashes&#34;:
+            continue
+        timedata = metadata[file]
+        old_hash = metadata[&#34;file_hashes&#34;][metadata[&#34;file_hashes&#34;][:, 0] == file, 1]
+        assert len(old_hash) == 1, print(file, old_hash)
+        old_hash = old_hash[0]
+        try:
+            new_hash = imohash.hashfile(file, hexdigest=True)
+            if old_hash != new_hash:
+                changed_hashes.append(file)
+                logger.debug(
+                    f&#34;Since last checking, the file {file}, the hash changed &#34;
+                    f&#34;from {old_hash} to {new_hash}. I will continue to check &#34;
+                    f&#34;the times of that file.&#34;
+                )
+        except FileNotFoundError:
+            logger.info(f&#34;Since last checking the file {file} was deleted.&#34;)
+            metadata.pop(file)
+            metadata[&#34;file_hashes&#34;] = metadata[&#34;file_hashes&#34;][
+                metadata[&#34;file_hashes&#34;][:, 0] != file
+            ]
+
+    if not changed_hashes:
+        logger.debug(
+            f&#34;Since last checking this simulation, no new files have been changed.&#34;
+        )
+        return metadata
+
+    for file in changed_hashes:
+        logger.info(
+            f&#34;Since last opening the metadata.npz for the file {file}, &#34;
+            f&#34;the file has changed. Loading new times from that file.&#34;
+        )
+        times = await get_times_from_file(Path(file))
+        # update times
+        metadata[file] = times
+        # and hash
+        metadata[&#34;file_hashes&#34;][metadata[&#34;file_hashes&#34;][:, 0] == file, 1] = new_hash
+
+    save_metadata(metadata, metadata_file)
+    logger.debug(
+        f&#34;Saved new metadata.npz at {metadata_file}, because the files &#34;
+        f&#34;{changed_hashes} have changed hashes.&#34;
+    )
+    return metadata
+
+
+async def update_files_in_metdata(
+    metadata: dict[str, np.ndarray],
+    metadata_file: Path,
+    files: dict[Union[str, Path], Path],
+    logger: Optional[logging.Logger] = None,
+) -&gt; dict[str, np.ndarray]:
+    if logger is None:
+        logger = _get_logger()
+    new_files = []
+    for k, v in files.items():
+        if k == &#34;trjcat&#34;:
+            continue
+        if k.is_file():
+            if k not in metadata:
+                new_files.append(k)
+        if v.is_file():
+            if v not in metadata:
+                new_files.append(v)
+    if files[&#34;trjcat&#34;]:
+        if files[&#34;trjcat&#34;].is_file():
+            if files[&#34;trjcat&#34;] not in metadata:
+                new_files.append(files[&#34;trjcat&#34;])
+
+    if not new_files:
+        logger.debug(
+            f&#34;Since last checking this simulation, no new files have been added.&#34;
+        )
+        return metadata
+
+    for new_file in new_files:
+        logger.info(
+            f&#34;Since last checking, the file {new_file} was added &#34;
+            f&#34;to the simulation. Adding its metadata to the sims &#34;
+            f&#34;metadata.npz.&#34;
+        )
+        timedata = await get_times_from_file(new_file)
+        new_hash = imohash.hashfile(new_file, hexdigest=True)
+        metadata[new_file] = timedata
+        if str(new_file) in metadata[&#34;file_hashes&#34;][:, 0]:
+            metadata[&#34;file_hashes&#34;][metadata[&#34;file_hashes&#34;][:, 0] == file, 1] = new_hash
+        else:
+            metadata[&#34;file_hashes&#34;] = np.vstack(
+                [metadata[&#34;file_hashes&#34;], [[str(new_file), new_hash]]]
+            )
+
+    save_metadata(metadata, metadata_file)
+    return metadata
+
+
+def save_metadata(
+    metadata: dict[Union[Path, str], np.ndarray],
+    metadata_file: Path,
+) -&gt; None:
+    # make all keys str
+    metadata = {str(k): v for k, v in metadata.items()}
+    file_hashes = metadata[&#34;file_hashes&#34;]
+    file_hashes = np.array([[str(file), file_hash] for file, file_hash in file_hashes])
+    metadata[&#34;file_hashes&#34;] = file_hashes
+    try:
+        np.savez(metadata_file, **metadata)
+    except Exception as e:
+        raise Exception(f&#34;Could not create metadata.npz at {metadata_file}&#34;) from e
+
+
+def load_metadata(metadata_file: Path) -&gt; dict[Union[Path, str], np.ndarray]:
+    &#34;&#34;&#34;Loads a npz file and makes all str Paths, if applicable.&#34;&#34;&#34;
+    metadata = dict(np.load(metadata_file))
+    file_hashes = metadata[&#34;file_hashes&#34;]
+    file_hashes = np.array([[Path(file), file_hash] for file, file_hash in file_hashes])
+    metadata = {Path(k): v for k, v in metadata.items() if k != &#34;file_hashes&#34;} | {
+        &#34;file_hashes&#34;: file_hashes
+    }
+    return metadata
+
+
+async def write_and_check_times(
+    simulation: tuple[Path, dict[Path, Path]],
+    max_time: int = -1,
+    dt: int = -1,
+    n_atoms: int = -1,
+    per_file_timestep_policy: PerFileTimestepPolicyType = &#34;raise&#34;,
+    inter_file_timestep_policy: InterFileTimestepPolicyType = &#34;raise&#34;,
+    file_exists_policy: FileExistsPolicyType = &#34;raise&#34;,
+    logger: Optional[logging.Logger] = None,
+) -&gt; dict:
+    sim_dir, sim_files = simulation
+    if logger is None:
+        logger = _get_logger()
+    data_file = sim_dir / &#34;metadata.npz&#34;
+    out = {sim_dir: {}}
+
+    input_files = [k for k, v in sim_files.items() if k != &#34;trjcat&#34;]
+    output_files = [v for k, v in sim_files.items() if k != &#34;trjcat&#34; and v.is_file()]
+    all_out_file = False
+    if sim_files[&#34;trjcat&#34;]:
+        if sim_files[&#34;trjcat&#34;].is_file():
+            all_out_file: Path = sim_files[&#34;trjcat&#34;]
+
+    # create the file if it does not exist
+    if not data_file.is_file():
+        logger.debug(
+            f&#34;The simulation {sim_dir} is missing its metadata.nc file. &#34;
+            f&#34;I will scan the files and collect the timesteps.&#34;
+        )
+
+        # frames and times of input files
+        logger.debug(f&#34;Adding source files for {sim_dir}.&#34;)
+        times = await asyncio.gather(*[get_times_from_file(s) for s in input_files])
+        times = {k: v for k, v in zip(input_files, times)}
+
+        # frames and times of maybe exisiting output files
+        logger.debug(f&#34;Adding destination files dor {sim_dir} if available.&#34;)
+        _ = await asyncio.gather(*[get_times_from_file(s) for s in output_files])
+        times |= {k: v for k, v in zip(output_files, _)}
+
+        # frames and times of the trjcat file
+        if all_out_file:
+            logger.debug(f&#34;Adding the tjcat file: {all_out_file}.&#34;)
+            _ = await get_times_from_file(all_out_file)
+            times |= {all_out_file: _}
+
+        assert len(times) == len(input_files) + len(output_files) + (
+            1 if all_out_file else 0
+        )
+
+        # same with file fashes
+        logger.debug(f&#34;Collecting file hashes for {sim_dir}.&#34;)
+        file_hashes = []
+        for inp_file, out_file in sim_files.items():
+            if inp_file != &#34;trjcat&#34;:
+                file_hashes.append(
+                    [inp_file, imohash.hashfile(inp_file, hexdigest=True)]
+                )
+            if out_file:
+                if out_file.is_file():
+                    file_hashes.append(
+                        [out_file, imohash.hashfile(out_file, hexdigest=True)]
+                    )
+        file_hashes = np.array(file_hashes)
+
+        # assert hat all file hashes are in keys
+        assert len(file_hashes) == len(input_files) + len(output_files) + (
+            1 if all_out_file else 0
+        )
+
+        logger.debug(f&#34;Saving metadata.npz for {sim_dir}.&#34;)
+        save_metadata(times | {&#34;file_hashes&#34;: file_hashes}, data_file)
+        assert data_file.is_file()
+
+    # open the file if it exists
+    if data_file.is_file():
+        logger.debug(f&#34;Opening metadata.nc for simulation {sim_dir}.&#34;)
+        metadata = load_metadata(data_file)
+        if &#34;arr_0&#34; in metadata:
+            metadata[&#34;file_hashes&#34;] = metadata.pop(&#34;arr_0&#34;)
+
+    # update and check hashes
+    metadata = await update_times_on_wrong_hash(metadata, data_file, logger)
+
+    # update all files in metadata
+    metadata = await update_files_in_metdata(metadata, data_file, sim_files, logger)
+
+    # check the input files for feasibility
+    if not feasibility_check(metadata, input_files, dt, max_time, logger):
+        raise Exception(
+            f&#34;dt and max_time with the files in {sim_dir} not &#34;
+            f&#34;possible. Check the logs in {logger.handlers[1].baseFilename} &#34;
+            f&#34;for more info.&#34;
+        )
+
+    # if feasible decide on start and end times of the input files
+    start_end_times = get_start_end_in_dt(metadata, input_files, dt, max_time, logger)
+
+    # check the all out file and continue if everything is ok based on that we start
+    # the commands dictionary, that will be passed to the main cleanup_sims function
+    if all_out_file:
+        # all_out_file is requested and it is a file
+        max_time_file = np.max(metadata[all_out_file][:, 1])
+        if max_time != -1:
+            max_time_ok = max_time == max_time_file
+        else:
+            max_time_ = np.max(
+                [np.max(t[:, 1]) for k, t in metadata if k != &#34;file_hashes&#34;]
+            )
+            max_time_ok = max_time_ == max_time_file
+        if not max_time_ok:
+            logger.info(
+                f&#34;The file file which will be produced by trjcat {all_out_file} &#34;
+                f&#34;already exists, but has the wrong maximum time. Requested was &#34;
+                f&#34;{max_time} ps, but the file has {max_time_file} ps.&#34;
+            )
+        else:
+            logger.debug(
+                f&#34;The file file which will be produced by trjcat {all_out_file} &#34;
+                f&#34;already exists and has the correct maximum time ({max_time_file} ps).&#34;
+            )
+
+        timesteps_file = np.unique(
+            metadata[all_out_file][1:, 1] - metadata[all_out_file][:-1, 1]
+        )
+        if dt != -1:
+            if len(timesteps_file) != 1:
+                logger.info(
+                    f&#34;The output file {all_out_file} has uneven timedeltas:&#34;
+                    f&#34;{timesteps_file}.&#34;
+                )
+                dt_ok = False
+            else:
+                timesteps_file = timesteps_file[0]
+                dt_ok = timesteps_file == dt
+        else:
+            dt_ok = len(timesteps_file) == 1
+
+        if not dt_ok:
+            logger.info(
+                f&#34;The file file which will be produced by trjcat {all_out_file} &#34;
+                f&#34;already exists, but has the wrong timesteps. Requested was &#34;
+                f&#34;{dt} ps, but the file has {timesteps_file} ps.&#34;
+            )
+        else:
+            logger.debug(
+                f&#34;The file file which will be produced by trjcat {all_out_file} &#34;
+                f&#34;already exists and has the correct timestep ({dt} ps).&#34;
+            )
+
+        if max_time_ok and dt_ok:
+            logger.debug(
+                f&#34;The file {sim_files[&#39;trjcat&#39;]} has the correct maximal time, &#34;
+                f&#34;and the correct timesteps.&#34;
+            )
+            return {}
+        else:
+            if file_exists_policy == &#34;raise&#34;:
+                raise Exception(
+                    f&#34;The file {sim_files[&#39;trjcat&#39;]} does not adhere to &#34;
+                    f&#34;the requested {max_time=} and {dt=}, but file_exists_policy&#34;
+                    f&#34;is set to &#39;raise&#39;. Set it to something else to prevent this &#34;
+                    f&#34;error. Also check the logs at {logger.handlers[1].baseFilename} &#34;
+                    f&#34;for more info.&#34;
+                )
+            elif file_exists_policy == &#34;continue&#34;:
+                logger.warning(
+                    f&#34;The file {sim_files[&#39;trjcat&#39;]} does not adhere to the &#34;
+                    f&#34;requested {max_time=} and {dt=}, however, due to &#34;
+                    f&#34;file_exists_policy being set to &#39;continue&#39; I will &#34;
+                    f&#34;not overwrite this file.&#34;
+                )
+                commands = {}
+            elif file_exists_policy == &#34;check_and_continue&#34;:
+                raise Exception(
+                    f&#34;The file {sim_files[&#39;trjcat&#39;]} does not adhere to &#34;
+                    f&#34;the requested {max_time=} and {dt=}, but file_exists_policy&#34;
+                    f&#34;is set to &#39;check_and+continue&#39;. Set it to something else to prevent this &#34;
+                    f&#34;error. Also check the logs at {logger.handlers[1].baseFilename} &#34;
+                    f&#34;for more info.&#34;
+                )
+            elif file_exists_policy == &#34;check_and_overwrite&#34;:
+                commands = {
+                    &#34;trjcat&#34;: {&#34;files&#34;: [], &#34;dt&#34;: dt, &#34;out_file&#34;: sim_files[&#34;trjcat&#34;]}
+                }
+            elif file_exists_policy == &#34;continue&#34;:
+                logger.warning(
+                    f&#34;Will skil the file {all_out_file}, although it might &#34;
+                    f&#34;have wrong max_time and timesteps.&#34;
+                )
+                commands = {}
+            elif file_exists_policy == &#34;overwrite&#34;:
+                commands = {
+                    &#34;trjcat&#34;: {&#34;files&#34;: [], &#34;dt&#34;: dt, &#34;out_file&#34;: sim_files[&#34;trjcat&#34;]}
+                }
+            else:
+                raise Exception(f&#34;Unkown {file_exists_policy=}&#34;)
+    else:
+        # file does not already exist. create it
+        if sim_files[&#34;trjcat&#34;]:
+            commands = {
+                &#34;trjcat&#34;: {&#34;files&#34;: [], &#34;dt&#34;: dt, &#34;out_file&#34;: sim_files[&#34;trjcat&#34;]}
+            }
+        # file is not requested but the remaining files need to be cleaned.
+        else:
+            commands = {}
+
+    # iterate over the files in start_end_times and compare them with the existing files
+    result = await asyncio.gather(
+        *[
+            check_file_with_dataset(
+                file,
+                out_file,
+                start_end_times,
+                metadata,
+                n_atoms,
+                file_exists_policy,
+                logger,
+            )
+            for file, out_file in sim_files.items()
+        ]
+    )
+    for d in result:
+        commands.update(d)
+
+    # add the trjcat files (maybe some files are ok, maybe some are not,
+    # check_file_with_dataset returns the
+    # minimum amount of work
+    if &#34;trjcat&#34; in commands:
+        commands[&#34;trjcat&#34;][&#34;files&#34;] = [v for k, v in sim_files.items() if k != &#34;trjcat&#34;]
+        if not commands[&#34;trjcat&#34;][&#34;files&#34;]:
+            raise Exception(
+                f&#34;trjcat list empty. Input data created from &#34;
+                f&#34;the values of the dict commands, here are &#34;
+                f&#34;the keys of the first values {list(commands.values()).keys()}&#34;
+            )
+
+    return commands
+
+
+async def create_ndx_files(
+    simulations: dict[Path, dict[Path, Path]],
+    s: str = &#34;topol.tpr&#34;,
+    deffnm: Optional[str] = None,
+    n_atoms: int = -1,
+    ndx_add_group_stdin: str = &#34;&#34;,
+    file_exists_policy: FileExistsPolicyType = &#34;raise&#34;,
+    logger: Optional[logging.Logger] = None,
+) -&gt; None:
+    await asyncio.gather(
+        *[
+            create_ndx_file(
+                simulation,
+                s,
+                deffnm,
+                n_atoms,
+                ndx_add_group_stdin,
+                file_exists_policy,
+                logger,
+            )
+            for simulation in simulations.keys()
+        ]
+    )
+
+
+async def create_ndx_file(
+    simulation: Path,
+    s: str = &#34;topol.tpr&#34;,
+    deffnm: Optional[str] = None,
+    n_atoms: int = -1,
+    ndx_add_group_stdin: str = &#34;&#34;,
+    file_exists_policy: FileExistsPolicyType = &#34;raise&#34;,
+    logger: Optional[logging.logger] = None,
+) -&gt; None:
+    if deffnm is not None and s == &#34;topol.tpr&#34;:
+        s = deffnm + &#34;.tpr&#34;
+    tpr_file = simulation / s
+    ndx_file = simulation / &#34;index.ndx&#34;
+    if logger is None:
+        logger = _get_logger()
+    overwrite = False
+    check = False
+    if ndx_file.is_file():
+        if file_exists_policy == &#34;raise&#34;:
+            raise Exception(
+                f&#34;File {ndx_file} already exists. &#34;
+                f&#34;Due to the chosen `{file_exists_policy=}` &#34;
+                &#34;I have raised an Exception.&#34;
+            )
+        elif file_exists_policy == &#34;overwrite&#34;:
+            logger.debug(f&#34;Will overwrite {ndx_file} without checking.&#34;)
+            overwrite = True
+        elif file_exists_policy == &#34;continue&#34;:
+            logger.debug(f&#34;File {ndx_file} already exists. Continuing&#34;)
+            return
+        elif file_exists_policy == &#34;check_and_overwrite&#34;:
+            logger.debug(f&#34;Will overwrite {ndx_file} when checks fail.&#34;)
+            overwrite = True
+            check = True
+        elif file_exists_policy == &#34;check_and_continue&#34;:
+            logger.debug(f&#34;Will check {ndx_file} and raise, when checks fail.&#34;)
+            overwrite = False
+            check = True
+        else:
+            raise Exception(f&#34;Unkown file_exists_policy: {file_exists_policy=}&#34;)
+    else:
+        overwrite = True
+
+    if check and n_atoms != -1:
+        text = ndx_file.read_text()
+        group_name = re.findall(r&#34;\[(.*?)\]&#34;, text)[-1].strip()
+        text = text.split(&#34;]&#34;)[-1].strip()
+        fields = [row for line in text.splitlines() for row in line.split()]
+        if len(fields) != n_atoms:
+            if not overwrite:
+                raise Exception(
+                    f&#34;{ndx_file} indexes the wrong number of atoms. &#34;
+                    f&#34;{n_atoms} was requested, but the file contains &#34;
+                    f&#34;{len(fields)} atoms for the new group: {group_name}. &#34;
+                    f&#34;set `file_exists_policy` to &#39;overwrite&#39; or &#34;
+                    f&#34;&#39;check_and_overwrite&#39; to overwrite this file.&#34;
+                )
+            else:
+                logger.debug(
+                    f&#34;{ndx_file} indexes the wrong number of atoms. &#34;
+                    f&#34;{n_atoms} was requested, but the file contains &#34;
+                    f&#34;{len(fields)} atoms for the new group: {group_name}. &#34;
+                    f&#34;I will overwrite this file.&#34;
+                )
+        else:
+            logger.debug(
+                f&#34;{ndx_file} is fine. The group {group_name} has the correct &#34;
+                f&#34;number of atoms: {n_atoms}.&#34;
+            )
+            return
+
+    if overwrite:
+        ndx_file.unlink(missing_ok=True)
+
+    cmd = f&#34;gmx make_ndx -f {tpr_file} -o {ndx_file}&#34;
+    ndx_add_group_stdin += &#34;\nq\n&#34;
+    ndx_add_group_stdin = ndx_add_group_stdin.encode()
+    if not _dryrun:
+        proc = await asyncio.subprocess.create_subprocess_shell(
+            cmd=cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            stdin=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate(ndx_add_group_stdin)
+        if not ndx_file.is_file():
+            print(proc.returncode)
+            print(stderr.decode())
+            print(stdout.decode())
+            print(cmd)
+            raise Exception(f&#34;Could not create file {ndx_file}&#34;)
+        else:
+            print(f&#34;Created {ndx_file}&#34;)
+    else:
+        logger.warning(f&#34;DRY-RUN: Created ndx_file {ndx_file}&#34;)
+
+    text = ndx_file.read_text()
+    group_name = re.findall(r&#34;\[(.*?)\]&#34;, text)[-1].strip()
+    text = text.split(&#34;]&#34;)[-1].strip()
+    fields = [row for line in text.splitlines() for row in line.split()]
+    if len(fields) != n_atoms:
+        raise Exception(
+            f&#34;{ndx_file} indexes the wrong number of atoms. &#34;
+            f&#34;{n_atoms} was requested, but the file contains &#34;
+            f&#34;{len(fields)} atoms for the new group: {group_name}. &#34;
+            f&#34;You can try and provide a different `ndx_add_group_stdin`.&#34;
+            f&#34;Try to find the correct stdin by calling the command: &#34;
+            f&#34;{cmd} manually.&#34;
+        )
+
+
+async def run_command_and_check(
+    command: dict,
+    logger: Optional[logging.Logger] = None,
+) -&gt; None:
+    stdout = &#34;&#34;
+    cmd = command[&#34;cmd&#34;]
+    stdin = command[&#34;stdin&#34;].encode()
+    out_file = command[&#34;out_file&#34;]
+    b = command[&#34;b&#34;]
+    e = command[&#34;e&#34;]
+    dt = command[&#34;dt&#34;]
+
+    # at this point we can be certain, that the out file is a bad file
+    if out_file.is_file():
+        logger.info(f&#34;Deleting the trjcat file {out_file}.&#34;)
+    if not _dryrun:
+        out_file.unlink(missing_ok=True)
+    else:
+        logger.warning(f&#34;DRY-RUN: Deleting {out_file}.&#34;)
+
+    # making directories
+    if not out_file.parent.is_dir():
+        if not _dryrun:
+            out_file.parent.mkdir(parents=True)
+        else:
+            logger.warning(f&#34;DRY-RUN: Creating directory: {out_file.parent}.&#34;)
+
+    logger.debug(f&#34;Running command {cmd}.&#34;)
+    if not _dryrun:
+        proc = await asyncio.subprocess.create_subprocess_shell(
+            cmd=cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            stdin=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate(stdin)
+        if not out_file.is_file():
+            print(proc.returncode)
+            print(stderr.decode())
+            print(stdout.decode())
+            print(cmd)
+            raise Exception(f&#34;Could not create file {out_file}&#34;)
+        else:
+            logger.debug(f&#34;Created {out_file}&#34;)
+    else:
+        logger.warning(f&#34;DRY-RUN: Created {out_file}&#34;)
+
+    # run tests on the new file
+    times = (await get_times_from_file(out_file))[:, 1]
+    timesteps = np.unique(times[1:] - times[:-1])
+    start_ok = times[0] == b
+    end_ok = times[-1] == e
+    if times[0] == times[-1]:
+        if times[0] % dt == 0:
+            timestep_ok = [dt]
+        else:
+            timestep_ok = []
+    else:
+        timestep_ok = timesteps
+
+    if len(timestep_ok) == 1:
+        timestep_ok = timestep_ok[0]
+        timestep_ok = timestep_ok == dt
+    else:
+        timestep_ok = False
+
+    file_ok = start_ok and end_ok and timestep_ok
+    if file_ok:
+        logger.info(
+            f&#34;The creation of the file {out_file} succeeded. All parameters are ok.&#34;
+        )
+        return stdout.decode()
+
+    random_hash = &#34;&#34;.join(
+        random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits)
+        for _ in range(16)
+    )
+    stderr_file = Path(f&#34;/tmp/{random_hash}.stderr&#34;)
+    stdout_file = Path(f&#34;/tmp/{random_hash}.stdout&#34;)
+    with open(stderr_file, &#34;w&#34;) as f:
+        if isinstance(stderr, bytes):
+            stderr = stderr.decode()
+        f.write(stderr)
+    with open(stdout_file, &#34;w&#34;) as f:
+        if isinstance(stdout, bytes):
+            stdout = stdout.decode()
+        f.write(stdout)
+
+    logger.critical(
+        f&#34;Creation of the file {out_file} resulted in a wrong file. &#34;
+        f&#34;The requested parameters were: start: {b} ps, end: {e} ps,&#34;
+        f&#34;dt: {dt} ps. But the new file has these parameters: &#34;
+        f&#34;start: {times[0]} ps, end: {times[-1]} ps, dt: {timesteps} ps. &#34;
+        f&#34;The original command was: {cmd}. I do not know, why gromacs &#34;
+        f&#34;does this. You can check the stdout and stderr of this process &#34;
+        f&#34;using these files: {stderr_file}, {stdout_file}. I will now try &#34;
+        f&#34;to attempt to use MDAnalysis as a fallback.&#34;
+    )
+
+    await mdanalysis_fallback(
+        input_file=command[&#34;inp_file&#34;],
+        output_file=command[&#34;out_file&#34;],
+        tpr_file=command[&#34;s&#34;],
+        ndx_file=command[&#34;n&#34;],
+        b=command[&#34;b&#34;],
+        e=command[&#34;e&#34;],
+        dt=command[&#34;dt&#34;],
+        output_group_and_center=command[&#34;stdin&#34;],
+        n_atoms=command[&#34;n_atoms&#34;],
+        logger=logger,
+    )
+
+    # check the file again
+    times = (await get_times_from_file(out_file))[:, 1]
+
+    start_ok = times[0] == b
+    end_ok = times[-1] == e
+    timesteps = np.unique(times[1:] - times[:-1])
+    timestep_ok = timesteps
+    if len(timestep_ok) == 1:
+        timestep_ok = timestep_ok[0]
+        timestep_ok = timestep_ok == dt
+    else:
+        timestep_ok = False
+
+    file_ok = start_ok and end_ok and timestep_ok
+    if file_ok:
+        logger.info(
+            f&#34;The creation of the file {out_file} succeeded with the &#34;
+            f&#34;MDAnalysis method. All parameters are ok.&#34;
+        )
+        return
+
+    logger.critical(
+        f&#34;Even the MDAnalysis fallback method to creat the file &#34;
+        f&#34;{out_file} resulted in a wrong file. &#34;
+        f&#34;The requested parameters were: start: {b} ps, end: {e} ps,&#34;
+        f&#34;dt: {dt} ps. But the new file has these parameters: &#34;
+        f&#34;start: {times[0]} ps, end: {times[-1]} ps, dt: {timesteps} ps. &#34;
+        f&#34;The original command was: {cmd}. I do not know, why MDAnalysis &#34;
+        f&#34;does this.&#34;
+    )
+
+    return stdout
+
+
+async def mdanalysis_fallback(
+    input_file: Path,
+    output_file: Path,
+    tpr_file: Path,
+    ndx_file: Path,
+    b: int,
+    e: int,
+    dt: int = -1,
+    output_group_and_center: Optional[Union[str, int]] = None,
+    n_atoms: int = -1,
+    logger: Optional[logging.Logger] = None,
+) -&gt; None:
+    # I have no idea why, but the local variable e gets deleted somewhere in the
+    # function
+    ee = e
+
+    try:
+        u = mda.Universe(str(tpr_file), str(input_file))
+    except ValueError as e:
+        n_atoms_tpr = int(str(e).splitlines()[1].split()[-1])
+        n_atoms_xtc = int(str(e).splitlines()[2].split()[-1])
+
+        if n_atoms_tpr == n_atoms_xtc:
+            pass
+        elif n_atoms_tpr &gt; n_atoms_xtc and n_atoms_xtc == n_atoms:
+            pass
+        else:
+            msg = (
+                f&#34;Can&#39;t use the MDAnalysis fallback with the requested &#34;
+                f&#34;{n_atoms=}. .tpr file has {n_atoms_tpr} atoms, &#34;
+                f&#34;.xtc file has {n_atoms_xtc} atoms. I can&#39;t produce &#34;
+                f&#34;a trajectory with consistent atoms with these files, as &#34;
+                f&#34;I can&#39;t deduce which atoms are in the xtc and which in the &#34;
+                f&#34;tpr. If both of them have the same number of atoms, that &#34;
+                f&#34;would have been possible. It would also have been possible, &#34;
+                f&#34;if the .xtc file has {n_atoms=} atoms and the .tpr file has &#34;
+                f&#34;more atoms than the .xtc file, as I can use the .ndx file &#34;
+                f&#34;to produce a .tpr with the correct number of atoms.&#34;
+            )
+            raise Exception(msg) from e
+
+    # check whether the group indexes the correct number of atoms
+    if &#34;\n&#34; in output_group_and_center:
+        center = True
+        group = output_group_and_center.split(&#34;\n&#34;)[0]
+    else:
+        center = False
+        group = output_group_and_center
+    ndx_content = ndx_file.read_text()
+    lines = ndx_content.split(f&#34;{group} ]&#34;)[1].split(&#34;[&#34;)[0]
+    atoms = []
+    for line in lines.splitlines():
+        atoms.extend(list(map(int, line.split())))
+
+    # raise exception if bad
+    if len(atoms) != n_atoms:
+        raise Exception(
+            f&#34;The group {group} does not index the correct number of &#34;
+            f&#34;atoms. Requested was {n_atoms=}, but the group indexes &#34;
+            f&#34;{len(atoms)=} atoms. I can&#39;t continue from here.&#34;
+        )
+
+    # create a new temporary tpr file for MDAnalysis
+    random_hash = &#34;&#34;.join(
+        random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits)
+        for _ in range(16)
+    )
+    tmp_tpr = Path(f&#34;/tmp/{random_hash}.tpr&#34;)
+    cmd = f&#34;gmx convert-tpr -s {tpr_file} -o {tmp_tpr} -n {ndx_file}&#34;
+    if not _dryrun:
+        proc = await asyncio.subprocess.create_subprocess_shell(
+            cmd=cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            stdin=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate(input=(group + &#34;\n&#34;).encode())
+        if not tmp_tpr.is_file():
+            print(proc.returncode)
+            print(stderr.decode())
+            print(stdout.decode())
+            print(cmd)
+            raise Exception(
+                f&#34;Could not create file {tmp_tpr} which is bad, because &#34;
+                f&#34;gromacs did not produce the correct file, and I am &#34;
+                f&#34;already at the fallback procedure using MDAnalysis.&#34;
+            )
+        else:
+            logger.debug(f&#34;created {tmp_tpr}&#34;)
+    else:
+        logger.warning(f&#34;DRY-RUN: Created {tmp_tpr}.&#34;)
+
+    # load
+    u = mda.Universe(str(tmp_tpr), str(input_file))
+    ag = u.select_atoms(&#34;all&#34;)
+
+    # add transformations
+    transformations = [trans.unwrap(ag)]
+    if center:
+        transformations.extend([trans.center_in_box(ag, wrap=True), trans.wrap(ag)])
+    u.trajectory.add_transformations(*transformations)
+
+    # define timestamps
+    timestamps = np.arange(b, ee + 1, dt)
+
+    # write the timesteps
+    if not _dryrun:
+        with mda.Writer(str(output_file), ag.n_atoms) as w:
+            for ts in u.trajectory:
+                if ts.time in timestamps:
+                    w.write(ag)
+    else:
+        logger.warning(f&#34;DRY-RUN: Created {output_file} with MDAnalysis fallback.&#34;)
+
+
+async def run_async_commands(
+    commands: list[dict],
+    logger: Optional[logging.Logger] = None,
+) -&gt; None:
+    return await asyncio.gather(*[run_command_and_check(c, logger) for c in commands])
+
+
+async def prepare_sim_cleanup(
+    simulations: dict[Path, dict[Path, Path]],
+    max_time: int = -1,
+    dt: int = -1,
+    n_atoms: int = -1,
+    per_file_timestep_policy: PerFileTimestepPolicyType = &#34;raise&#34;,
+    inter_file_timestep_policy: InterFileTimestepPolicyType = &#34;raise&#34;,
+    file_exists_policy: FileExistsPolicyType = &#34;raise&#34;,
+    logger: Optional[logging.logger] = None,
+) -&gt; dict:
+    plan = await asyncio.gather(
+        *[
+            write_and_check_times(
+                simulation,
+                max_time,
+                dt,
+                n_atoms,
+                per_file_timestep_policy,
+                inter_file_timestep_policy,
+                file_exists_policy,
+                logger,
+            )
+            for simulation in simulations.items()
+        ]
+    )
+    return plan
+
+
+async def async_run_concat_commands(
+    commands: list[dict[str, Union[str, Path, int]]],
+    logger: Optional[logging.Logger] = None,
+) -&gt; None:
+    await asyncio.gather(
+        *[run_concat_command(command, logger=logger) for command in commands]
+    )
+
+
+async def run_concat_command(
+    command: dict[str, Union[str, Path, int]],
+    logger: Optional[logging.Logger] = None,
+) -&gt; None:
+    if logger is None:
+        logger = _get_logger()
+    b = command[&#34;b&#34;]
+    e = command[&#34;e&#34;]
+    dt = command[&#34;dt&#34;]
+    out_file = command[&#34;out_file&#34;]
+
+    # create the cat files
+    cat_files = []
+    for file in command[&#34;inp_files&#34;]:
+        if file.is_file():
+            cat_files.append(file)
+        else:
+            logger.info(
+                f&#34;The output file {file} does not exist and will not &#34;
+                f&#34;be provided to gmx trjconv. It is probably a file with &#34;
+                f&#34;no timesteps (only a single frame).&#34;
+            )
+    cat_files = &#34; &#34;.join(map(str, cat_files))
+    command[&#34;cmd&#34;] = command[&#34;cmd&#34;].replace(&#34;CAT_FILES&#34;, cat_files)
+    cmd = command[&#34;cmd&#34;]
+
+    # run the command
+    # at this point we can be certain, that the out file is a bad file
+    if out_file.is_file():
+        logger.info(f&#34;Deleting the trjcat file {out_file}.&#34;)
+    if not _dryrun:
+        out_file.unlink(missing_ok=True)
+    else:
+        logger.warning(f&#34;DRY-RUN: Deleted {out_file}&#34;)
+
+    # making directories
+    if not out_file.parent.is_dir():
+        if not _dryrun:
+            out_file.parent.mkdir(parents=True)
+        else:
+            logger.warning(f&#34;DRY-RUN: Creating directory: {out_file.parent}.&#34;)
+
+    logger.debug(f&#34;Running command {cmd}.&#34;)
+    if not _dryrun:
+        proc = await asyncio.subprocess.create_subprocess_shell(
+            cmd=cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate()
+        if not out_file.is_file():
+            print(proc.returncode)
+            print(stderr.decode())
+            print(stdout.decode())
+            print(cmd)
+            raise Exception(f&#34;Could not create file {out_file}&#34;)
+        else:
+            logger.debug(f&#34;Created {out_file}&#34;)
+    else:
+        logger.warning(f&#34;DRY-RUN: Created {out_file}&#34;)
+
+    # run tests on the new file
+    times = (await get_times_from_file(out_file))[:, 1]
+    timesteps = np.unique(times[1:] - times[:-1])
+    start_ok = times[0] == b
+    end_ok = times[-1] == e or e == -1
+    timestep_ok = np.unique(times[1:] - times[:-1])
+    if len(timestep_ok) == 1:
+        timestep_ok = timestep_ok[0]
+        timestep_ok = timestep_ok == dt
+    else:
+        timestep_ok = False
+
+    file_ok = start_ok and end_ok and timestep_ok
+    if file_ok:
+        logger.info(
+            f&#34;The creation of the file {out_file} succeeded. All parameters are ok.&#34;
+        )
+        return
+
+    random_hash = &#34;&#34;.join(
+        random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits)
+        for _ in range(16)
+    )
+    stderr_file = Path(f&#34;/tmp/{random_hash}.stderr&#34;)
+    stdout_file = Path(f&#34;/tmp/{random_hash}.stdout&#34;)
+    with open(stderr_file, &#34;w&#34;) as f:
+        if isinstance(stderr, bytes):
+            stderr = stderr.decode()
+        f.write(stderr)
+    with open(stdout_file, &#34;w&#34;) as f:
+        if isinstance(stdout, bytes):
+            stdout = stdout.decode()
+        f.write(stdout)
+
+    logger.critical(
+        f&#34;Creation of the file {out_file} resulted in a wrong file. &#34;
+        f&#34;The requested parameters were: start: {b} ps, end: {e} ps,&#34;
+        f&#34;dt: {dt} ps. But the new file has these parameters: &#34;
+        f&#34;start: {times[0]} ps, end: {times[-1]} ps, dt: {timesteps} ps. &#34;
+        f&#34;The original command was: {cmd}. I do not know, why gromacs &#34;
+        f&#34;does this. You can check the stdout and stderr of this process &#34;
+        f&#34;using these files: {stderr_file}, {stdout_file}. I will now try &#34;
+        f&#34;to attempt to use MDAnalysis as a fallback.&#34;
+    )
+
+    return
+
+
+async def async_run_create_pdb(
+    pdb_commands: list[dict[str, Union[str, Path, int]]],
+    n_atoms: int = -1,
+    file_exists_policy: FileExistsPolicyType = &#34;raise&#34;,
+    logger: Optional[logging.Logger] = None,
+) -&gt; None:
+    await asyncio.gather(
+        *[
+            async_create_pdb(pdb_cmd, n_atoms, file_exists_policy, logger=logger)
+            for pdb_cmd in pdb_commands
+        ]
+    )
+
+
+async def async_create_pdb(
+    pdb_cmd: dict[str, Union[str, Path, int]],
+    n_atoms: int = -1,
+    file_exists_policy: FileExistsPolicyType = &#34;raise&#34;,
+    logger: Optional[logging.Logger] = None,
+) -&gt; None:
+    pdb_out_file = pdb_cmd[&#34;out_file&#34;]
+    check = False
+    if pdb_out_file.is_file():
+        if file_exists_policy == &#34;raise&#34;:
+            raise Exception(
+                f&#34;File {pdb_out_file} already exists. &#34;
+                f&#34;Due to the chosen `{file_exists_policy=}` &#34;
+                &#34;I have raised an Exception.&#34;
+            )
+        elif file_exists_policy == &#34;overwrite&#34;:
+            logger.debug(f&#34;Will overwrite {pdb_out_file} without checking.&#34;)
+            overwrite = True
+        elif file_exists_policy == &#34;continue&#34;:
+            logger.debug(f&#34;File {pdb_out_file} already exists. Continuing&#34;)
+            return
+        elif file_exists_policy == &#34;check_and_overwrite&#34;:
+            logger.debug(f&#34;Will overwrite {pdb_out_file} when checks fail.&#34;)
+            overwrite = True
+            check = True
+        elif file_exists_policy == &#34;check_and_continue&#34;:
+            logger.debug(f&#34;Will check {pdb_out_file} and raise, when checks fail.&#34;)
+            overwrite = False
+            check = True
+        else:
+            raise Exception(f&#34;Unkown file_exists_policy: {file_exists_policy=}&#34;)
+    else:
+        overwrite = True
+
+    if check and n_atoms != -1:
+        n_atoms_in_file = mda.Universe(str(pdb_out_file)).atoms.n_atoms
+        if n_atoms_in_file != n_atoms:
+            if not overwrite:
+                raise Exception(
+                    f&#34;{pdb_out_file} has the wrong number of atoms. &#34;
+                    f&#34;{n_atoms} was requested, but the file contains &#34;
+                    f&#34;{n_atoms_in_file} atoms. &#34;
+                    f&#34;Set `file_exists_policy` to &#39;overwrite&#39; or &#34;
+                    f&#34;&#39;check_and_overwrite&#39; to overwrite this file.&#34;
+                )
+            else:
+                logger.debug(
+                    f&#34;{pdb_out_file} indexes the wrong number of atoms. &#34;
+                    f&#34;{n_atoms} was requested, but the file contains &#34;
+                    f&#34;{n_atoms_in_file} atoms. &#34;
+                    f&#34;I will overwrite this file.&#34;
+                )
+        else:
+            logger.debug(
+                f&#34;{pdb_out_file} is fine. It has the correct &#34;
+                f&#34;number of atoms: {n_atoms}.&#34;
+            )
+            return
+
+    if overwrite:
+        if not _dryrun:
+            pdb_out_file.unlink(missing_ok=True)
+        else:
+            logger.warning(f&#34;DRY-RUN: Deleted {pdb_out_file}&#34;)
+
+    if not _dryrun:
+        proc = await asyncio.subprocess.create_subprocess_shell(
+            cmd=pdb_cmd[&#34;cmd&#34;],
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            stdin=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate(pdb_cmd[&#34;stdin&#34;].encode())
+        if not pdb_out_file.is_file():
+            print(proc.returncode)
+            print(stderr.decode())
+            print(stdout.decode())
+            print(pdb_cmd[&#34;cmd&#34;])
+            raise Exception(f&#34;Could not create file {pdb_out_file}&#34;)
+        else:
+            print(f&#34;Created {pdb_out_file}&#34;)
+    else:
+        logger.warning(f&#34;DRY-RUN: Created {pdb_out_file}&#34;)
+
+    n_atoms_in_file = mda.Universe(str(pdb_out_file)).atoms.n_atoms
+    if n_atoms != -1:
+        if n_atoms_in_file != n_atoms:
+            raise Exception(
+                f&#34;{pdb_out_file} has the wrong number of atoms. &#34;
+                f&#34;{pdb_out_file} was requested, but the file contains &#34;
+                f&#34;{n_atoms_in_file}. &#34;
+                f&#34;You can try and provide a different `output_group_and_center` &#34;
+                f&#34;(-ndx-group for the CLI).&#34;
+                f&#34;Try to find the correct stdin by calling the command: &#34;
+                f&#34;{pdb_cmd[&#39;cmd&#39;]} manually.&#34;
+            )
+
+
+################################################################################
+# Main functions
+################################################################################
+
+
+def cleanup_sims(
+    directories: List[str],
+    out_dir: Union[str, Path],
+    dt: int = -1,
+    max_time: int = -1,
+    n_atoms: int = -1,
+    s: str = &#34;topol.tpr&#34;,
+    x: str = &#34;traj_comp.xtc&#34;,
+    pbc: Union[str, None] = &#34;nojump&#34;,
+    center: bool = False,
+    output_group_and_center: Union[str, int] = 1,
+    deffnm: Optional[str] = None,
+    trjcat: bool = True,
+    create_pdb: bool = True,
+    create_ndx: bool = False,
+    ndx_add_group_stdin: Optional[str] = None,
+    per_file_timestep_policy: PerFileTimestepPolicyType = &#34;raise&#34;,
+    inter_file_timestep_policy: InterFileTimestepPolicyType = &#34;raise&#34;,
+    file_exists_policy: FileExistsPolicyType = &#34;raise&#34;,
+    clean_copies: bool = False,
+    dry_run: bool = False,
+    logfile: Optional[Path] = Path(&#34;sim_cleanup.log&#34;),
+    loglevel: int = logging.INFO,
+) -&gt; None:
+    &#34;&#34;&#34;Cleans up your messy simulations.
+    
+    Uses asyncio and logging to make the process fast
+    and transparent. Main use case is: Remove solvent and
+    change timestep.
+    
+    Features include:
+
+    * Caching of simulation times using metadata.npz files, so consecutive calls
+        to this function are accelerated.
+    * Using native GROMACS command (trjconv, trjcat) for working with
+        xtc files. But if GROMACS does not play along, MDAnalysis will be used.
+    * Using a fast xdr reader to get only times (not coordinates) from input
+        trajectories.
+    * Keeping track of files on disk via imohash. If a file changes through some
+        external commands, the times and timesteps will be reloaded.
+
+    The most important arguments are the `directories`, `out_dir`, `n_atoms`, `dt`,
+    `max_time`. Take some time and read how they are used in this script.
+
+    Although the script can be called from command line, I recommend writing a small
+    python script to call this function.
+
+    ```python
+    #!/usr/bin/env python
+    from cleanup_sims import cleanup_sims
+
+    inp_dirs = [&#34;/path/to/to/dir/./sims1&#34;, &#34;/path/to/./sims2&#34;]
+    out_dir = [&#34;/path/to/clean/sims&#34;]
+
+    cleanup_sims(inp_dirs, out_dir, dt=50, max_time=500)
+    ```
+    
+    Note:
+        The `directories` argument can include truncation marks which will keep the
+        directory structure up to that point. For example, if you provide
+        [&#39;/path/to/./sim_folder/production&#39;] as `directories` and &#39;/home/me/&#39; as
+        `out_dir`, the simulation file without solvent can be found in
+        &#39;/home/me/sim_folder/production/traj.xtc&#39;.
+
+    Args:
+        directories (list[str]): The input directories. You can provide as many
+            as you like. You can include truncation marks similar to rsync in
+            the directory names. These truncation marks will be used to determine
+            the folder structure in the output_directory. Let&#39;s say we provide
+            ./cleanup_sims.py -d /path/to/./first/simulation/xtcs -d /path/to/some/other/./simulation -o /output/dir,
+            the directories /output/dir/first/simulation/xtcs and
+            /output/dir/simulation will be created.
+        out_dir (Union[str, Path]): The output directory, if you use the
+            `--trjcat` flag, only the final concatenated file will be written to
+            the folders in the output directory. The cleaned partial xtc files
+            will be put into the same directory they are now in. If --trjcat is
+            not given, all *xtc files in the input directories will be put in
+            the folders created in the output directory.
+        dt (int): Similar to Gromacs&#39; dt option. Only writes frames every frame
+            mod dt == 0 picoseconds. This is usually done using subprocess calls
+            to gmx trjconv. However, sometimes gromacs screws up and makes a
+            dt 100 ps to some dt 92 and some dt 8 ps. If -1 is given all frames
+            will be written to output. Defaults to -1.
+        max_time (int): The maximum time in ps to write trajectories. If some of
+            your simulations don&#39;t reach that time, an exception will be thrown.
+            If -1 is provided, the maximum time per xtcs in a directoyr is used.
+            Defaults to -1. If the --trjcat option is provided and the output
+            file fits the -dt and -max flags, the simulation cleanup of that
+            simulation is considered finished. So consecutive calls will only
+            change the file if the parameters -dt, -max (and -n-atom) change.
+        s (str): The .tpr files in the directories. Similar to gromacs&#39; -s flag.
+            Will overwrite the values set with -deffnm. So setting
+            -deffnm production -s some_tpr_file.tpr will look for
+            some_tpr_file.tpr in the simulation directories.
+        x (str): The .xtc files in the directories. Similar to gromacs&#39; -f flag
+            (which is -x in mdrun). Will overwrite the values set with -deffnm.
+            So setting -deffnm production -x my_traj.xtc will look for
+            my_traj.xtc, my_traj.part0001.xtc, my_traj.part0002.xtc and so on in
+            the simulation directories. Defaults to traj_comp.xtc.
+        pbc (str): What to provide for the periodic boundary correction of
+            trjconv. Is set to nojump (best for single molecules) per default.
+            Can alsobe explicitly set to None, if you don&#39;t want any pbc correction.
+            The pbc method will be used as the name of the output file.
+            So -pbc nojump will produce traj_nojump.xtc in your outout directories
+            (if -trjcat is set) or traj_comp_nojump.xtc,
+            traj_comp_nojump.part0001.xtc and so on, if -trjcat is not set.
+            If -deffnm or -x are set, the filenames of these will be used, so
+            that in theory my_traj_file_nojump.xtc and
+            my_traj_file_nojump.part0001.xtc are possible.
+        center (bool): Similar to gromacs trjconv&#39;s -[no]center option. If center
+            is provided the -ndx-group will be used both for centering and pbc
+            removal. If you want different groups for centering and output,
+            use the python function (e.g. by writing a short py
+            Use the python function and provide a string with newline chara\
+                cter (\\n) to use different groups for pbc and center.
+        output_group_and_center (str): The string to provide for gmx trjconv to
+            center and remove pbcs from. Can either be an integer (0 is most of
+            the times the system, 1 is most of the times the protein) or a string
+            like System, Protein, or a custom group read from the ndx file, which
+            is created if -create-ndx is provided. In any case, if you provide
+            -n-atoms, the algorithm will check the output and inform you, when
+            it contains a different number of atoms. This will allow you to
+            tweak your group selection or make sure, that Gromacs recognizes
+            your protein in group 1 correctly.
+        deffnm (Optional[str]): The default filename for the files in the -d
+            input directories. If you run your mdrun simulations with -deffnm
+            production, you should also provide production for this argument.
+            If -s or -x are set, this will be overwritten.
+        trjcat (bool): Whether to concatenate the trajectories from the input
+            directories into one long (-max) trajectory. If -trjcat is set, the
+            output directory will only contain one .xtc file. The outputs from
+            gmx trjconv will be written into the input directories along with
+            the inputxtc files.
+        create_pdb (bool): When given, the output directories will also contain
+            start.pdb files that are extracted from the first frame of the
+            simulations. These can be used to load the clean trajectries into
+            other tools.
+        create_ndx (bool): If gromac&#39;s doesn&#39;t recognize your protein as such
+            and the index group 1 (Protein) contains the wrong number of atoms,
+            you can create index.ndx files in the input directories with this
+            option. See the -ndx-group-in flag how to do so.
+        ndx_add_group_stdin (str): If you have non-standard residues in your
+            protein and they are not included in group 1 (protein) of the
+            standard index, you can add a custom group using this flag. If you
+            have two non-standard residues (LYQ and GLQ) you can create a new
+            group from the protein and the residue indices by providing the
+            string &#34;Protein | GLQ | LYQ&#34; (these are logical or). This will use
+            gmx make_ndx and the simulations .tpr file to create an index.ndx file.
+            The -ndx-group flag should then be &#34;Protein_GLQ_LYQ&#34;. If you are not
+            sure, what to provide he re, play around with your tpr files and
+            make_ndx and then start this program with what you learned from there.
+        per_file_timestep_policy (PerFileTimestepPolicyType): What to do if
+            the timesteps in the input files are bad. Possibilities are:
+                * &#39;raise&#39;: Raise an Exception, if the timesteps are bad.
+                * &#39;ignore&#39;: Continue on your merry way and ignore the
+                    problems that the future might hold.
+                * &#39;compare_with_dt&#39;: If the `dt` argument is divisible
+                    by the bad timesteps, we&#39;re lucky and can just continue.
+                * &#39;choose_next&#39;: If bad timesteps are detected, just choose
+                    the closest available and continue with dt timesteps
+                    from there.
+            Defaults to &#39;raise&#39;.
+        inter_file_timetep_policy (InterFileTimestepPolicyType): What to do
+            if the timeteps between two files hint at a gap. Possibilities are:
+                * &#39;raise&#39;: Raise an Exception, if the difference between end of
+                    traj_comp.partXXXX.xtc and start of traj_comp.partXXX+1.xtc
+                    is larger than `dt` or even smaller than 0. Which can happen.
+                * &#39;ignore&#39;: Not recommended, but a possibility.
+                * &#39;fix_conflicts&#39;: We can try to fix the conflicts, if the data
+                    in the input xtc files is there for all timesteps.
+            Defaults to &#39;raise&#39;.
+        file_exists_policy (FileExistsPolicyType): What to do, if a file
+            already exists. Possibilities are:
+                * &#39;raise&#39;: Raise an Exception (aka FileExistsError).
+                * &#39;overwrite&#39;: No compromises. Overwrite it.
+                * &#39;continue&#39;: Continue looping over input and output files,
+                    skipping, if a file already exists, without checking
+                    whether times and timesteps in the file are correct.
+                * &#39;check_and_continue&#39;: Check before continuing the loop,
+                    it might be, that the old file is also wrong.
+                * &#39;check_and_overwrite&#39;: Check before continuing the loop,
+                    but if the file is wrong, fall back to overwriting it.
+            Defaults to &#39;raise&#39;.
+        clean_copies (bool): Gromacs will leave file copies (#traj_comp.xtc.1#)
+            in the directories when output files are already there. Delete
+            the copy files. Defaults to False.
+        dry_run (bool): If dry-run is set to True, no files will be written or
+            deleted.
+        logfile (str): Where to place the logfile at. Defaults to sim_cleanup.log.
+        loglevel (str): What level to log at. Defaults to WARNING.
+
+    &#34;&#34;&#34;
+    pbcs_ = [&#34;mol&#34;, &#34;res&#34;, &#34;atom&#34;, &#34;nojump&#34;, &#34;cluster&#34;, &#34;whole&#34;, &#34;None&#34;]
+    if not pbc in pbcs_:
+        raise Exception(f&#34;Please choose one of {pbcs_} for `pbc`&#34;)
+    if pbc == &#34;None&#34;:
+        pbc = None
+
+    # get the logger
+    logger = _get_logger(logfile, singular=True, loglevel=loglevel)
+
+    # set global dryrun
+    global _dryrun
+    _dryrun = dry_run
+
+    # set the terminator
+    logging.StreamHandler.terminator = &#34;\n&#34;
+
+    # print a start
+    logger.info(&#34;Started to clean up simulations.&#34;)
+
+    # if center is given, we need to duplicate the output
+    output_group_and_center = str(output_group_and_center)
+    if center:
+        output_group_and_center = (
+            output_group_and_center + &#34;\n&#34; + output_group_and_center + &#34;\n&#34;
+        )
+        center = &#34;center&#34;
+    else:
+        output_group_and_center += &#34;\n&#34;
+        center = &#34;nocenter&#34;
+
+    # check the input policies
+    if per_file_timestep_policy not in PerFileTimestepPolicyType.__args__:
+        raise ValueError(
+            f&#34;The `per_file_timestep_policy` needs to be one of the following: &#34;
+            f&#34;{PerFileTimestepPolicyType}, but you provided: {per_file_timestep_policy}&#34;
+        )
+    if inter_file_timestep_policy not in InterFileTimestepPolicyType.__args__:
+        raise ValueError(
+            f&#34;The `inter_file_timestep_policy` needs to be one of the following: &#34;
+            f&#34;{InterFileTimestepPolicyType}, but you provided: {inter_file_timestep_policy}&#34;
+        )
+    if file_exists_policy not in FileExistsPolicyType.__args__:
+        raise ValueError(
+            f&#34;The `file_exists_policy` needs to be one of the following: &#34;
+            f&#34;{FileExistsPolicyType}, but you provided: {file_exists_policy}&#34;
+        )
+
+    # get the input and the predefined output
+    simulations = map_in_and_out_files(directories, out_dir, x, pbc, deffnm, trjcat)
+
+    # based on this we can already collect the commands to create pdb files
+    if create_pdb:
+        pdb_commands = []
+        for sim_dir, simulation in simulations.items():
+            if not simulation[&#34;trjcat&#34;]:
+                for inp_file, out_file in simulation.items():
+                    if inp_file != &#34;trjcat&#34;:
+                        tpr_file = inp_file.parent / s
+                        break
+            else:
+                for inp_file, out_file in simulation.items():
+                    # this is agnostic to whether trjcat is True or False
+                    # important is only, whether the directories are the same
+                    if inp_file == &#34;trjcat&#34;:
+                        tpr_file = sim_dir / s
+                        break
+                    if inp_file.parent != out_file.parent:
+                        tpr_file = inp_file.parent / s
+                        break
+
+            if deffnm is not None and s == &#34;topol.tpr&#34;:
+                s = deffnm + &#34;.tpr&#34;
+            pdb_out_file = out_file.parent / &#34;start.pdb&#34;
+            pdb_cmd = (
+                f&#34;gmx trjconv -f {out_file} -s {tpr_file} -o {pdb_out_file} -dump 0&#34;
+            )
+            if center:
+                pdb_cmd += &#34; -center&#34;
+            if create_ndx:
+                pdb_cmd += f&#34; -n {tpr_file.parent / &#39;index.ndx&#39;}&#34;
+            pdb_cmd = {
+                &#34;cmd&#34;: pdb_cmd,
+                &#34;stdin&#34;: output_group_and_center,
+                &#34;out_file&#34;: pdb_out_file,
+                &#34;n_atoms&#34;: n_atoms,
+            }
+            pdb_commands.append(pdb_cmd)
+
+    assert len(simulations) == len(directories)
+    logger.info(f&#34;{len(simulations)} simulations will be cleaned up.&#34;)
+
+    # write the ndx files
+    if create_ndx:
+        asyncio.run(
+            create_ndx_files(
+                simulations,
+                s,
+                deffnm,
+                n_atoms,
+                ndx_add_group_stdin,
+                file_exists_policy,
+                logger,
+            )
+        )
+
+    # prepeare everything
+    # this method filters out what actually needs to be done and whether it is doable
+    # out comes a dictionary that can be passed to asyncio
+    plans = asyncio.run(
+        prepare_sim_cleanup(
+            simulations,
+            max_time,
+            dt,
+            n_atoms,
+            per_file_timestep_policy,
+            inter_file_timestep_policy,
+            file_exists_policy,
+            logger,
+        )
+    )
+    # to the plans, we add the tpr, ndx, center, s, output_group_and_center
+    async_commands = []
+    concat_commands = []
+    for i, (plan, (sim_dir, sim_files)) in enumerate(zip(plans, simulations.items())):
+        # find the tpr file in the directory
+        if deffnm is not None and s == &#34;topol.tpr&#34;:
+            s = deffnm + &#34;.tpr&#34;
+        tpr_file = sim_dir / s
+        assert tpr_file.is_file(), print(f&#34;.tpr file {tpr_file} does not exist.&#34;)
+
+        if create_ndx:
+            ndx_file = sim_dir / &#34;index.ndx&#34;
+            assert ndx_file.is_file(), print(f&#34;.tpr file {tpr_file} does not exist.&#34;)
+
+        for inp_file, command in plan.items():
+            if inp_file == &#34;trjcat&#34;:
+                command = {
+                    &#34;cmd&#34;: f&#34;gmx trjcat -f CAT_FILES -o {command[&#39;out_file&#39;]}&#34;,
+                    &#34;b&#34;: 0,
+                    &#34;e&#34;: max_time,
+                    &#34;dt&#34;: dt,
+                    &#34;out_file&#34;: command[&#34;out_file&#34;],
+                    &#34;stdin&#34;: output_group_and_center,
+                    &#34;n_atoms&#34;: n_atoms,
+                    &#34;inp_files&#34;: command[&#34;files&#34;],
+                    &#34;s&#34;: tpr_file,
+                }
+                concat_commands.append(command)
+            else:
+                command = {
+                    &#34;cmd&#34;: f&#34;gmx trjconv -s {tpr_file} -f {inp_file} -o {command[&#39;out_file&#39;]} &#34;
+                    f&#34;-{center} -b {command[&#39;b&#39;]} -e {command[&#39;e&#39;]} -dt {command[&#39;dt&#39;]}&#34;,
+                    &#34;b&#34;: command[&#34;b&#34;],
+                    &#34;e&#34;: command[&#34;e&#34;],
+                    &#34;dt&#34;: command[&#34;dt&#34;],
+                    &#34;out_file&#34;: command[&#34;out_file&#34;],
+                    &#34;stdin&#34;: output_group_and_center,
+                    &#34;n_atoms&#34;: n_atoms,
+                    &#34;inp_file&#34;: inp_file,
+                    &#34;s&#34;: tpr_file,
+                }
+                if pbc is not None:
+                    command[&#34;cmd&#34;] += f&#34; -pbc {pbc}&#34;
+                if create_ndx:
+                    command[&#34;cmd&#34;] += f&#34; -n {ndx_file}&#34;
+                    command[&#34;n&#34;] = ndx_file
+                async_commands.append(command)
+
+    # set the event loop for the gathers
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    # run the commands asynchronously
+    if async_commands:
+        result = loop.run_until_complete(
+            run_async_commands(
+                async_commands,
+                logger,
+            )
+        )
+        print(result)
+
+    if concat_commands:
+        loop.run_until_complete(
+            async_run_concat_commands(
+                concat_commands,
+                logger=logger,
+            )
+        )
+
+    if create_pdb:
+        loop.run_until_complete(
+            async_run_create_pdb(
+                pdb_commands,
+                n_atoms,
+                file_exists_policy,
+                logger=logger,
+            )
+        )
+
+    if clean_copies:
+        pass
+        # copy_files = list(list(sims.values())[0].parent.glob(&#34;#*&#34;))
+        # logger.debug(
+        #     f&#34;Deleting {len(copy_files)} copy files (filenames like this: {copy_files[0]})&#34;
+        # )
+        # for f in copy_files:
+        #     f.unlink()
+
+    logger.info(&#34;All finished. Rejoice.&#34;)
+
+
+################################################################################
+# Argparse and make it a script
+################################################################################
+
+if __name__ == &#34;__main__&#34;:
+    args = vars(parser.parse_args())
+    cleanup_sims(**args)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="cleanup_sims.cleanup_sims.cleanup_sims"><code class="name flex">
+<span>def <span class="ident">cleanup_sims</span></span>(<span>directories: List[str], out_dir: Union[str, Path], dt: int = -1, max_time: int = -1, n_atoms: int = -1, s: str = 'topol.tpr', x: str = 'traj_comp.xtc', pbc: Union[str, None] = 'nojump', center: bool = False, output_group_and_center: Union[str, int] = 1, deffnm: Optional[str] = None, trjcat: bool = True, create_pdb: bool = True, create_ndx: bool = False, ndx_add_group_stdin: Optional[str] = None, per_file_timestep_policy: PerFileTimestepPolicyType = 'raise', inter_file_timestep_policy: InterFileTimestepPolicyType = 'raise', file_exists_policy: FileExistsPolicyType = 'raise', clean_copies: bool = False, dry_run: bool = False, logfile: Optional[Path] = PosixPath('sim_cleanup.log'), loglevel: int = 20) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Cleans up your messy simulations.</p>
+<p>Uses asyncio and logging to make the process fast
+and transparent. Main use case is: Remove solvent and
+change timestep.</p>
+<p>Features include:</p>
+<ul>
+<li>Caching of simulation times using metadata.npz files, so consecutive calls
+to this function are accelerated.</li>
+<li>Using native GROMACS command (trjconv, trjcat) for working with
+xtc files. But if GROMACS does not play along, MDAnalysis will be used.</li>
+<li>Using a fast xdr reader to get only times (not coordinates) from input
+trajectories.</li>
+<li>Keeping track of files on disk via imohash. If a file changes through some
+external commands, the times and timesteps will be reloaded.</li>
+</ul>
+<p>The most important arguments are the <code>directories</code>, <code>out_dir</code>, <code>n_atoms</code>, <code>dt</code>,
+<code>max_time</code>. Take some time and read how they are used in this script.</p>
+<p>Although the script can be called from command line, I recommend writing a small
+python script to call this function.</p>
+<pre><code class="language-python">#!/usr/bin/env python
+from cleanup_sims import cleanup_sims
+
+inp_dirs = [&quot;/path/to/to/dir/./sims1&quot;, &quot;/path/to/./sims2&quot;]
+out_dir = [&quot;/path/to/clean/sims&quot;]
+
+cleanup_sims(inp_dirs, out_dir, dt=50, max_time=500)
+</code></pre>
+<h2 id="note">Note</h2>
+<p>The <code>directories</code> argument can include truncation marks which will keep the
+directory structure up to that point. For example, if you provide
+['/path/to/./sim_folder/production'] as <code>directories</code> and '/home/me/' as
+<code>out_dir</code>, the simulation file without solvent can be found in
+'/home/me/sim_folder/production/traj.xtc'.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>directories</code></strong> :&ensp;<code>list[str]</code></dt>
+<dd>The input directories. You can provide as many
+as you like. You can include truncation marks similar to rsync in
+the directory names. These truncation marks will be used to determine
+the folder structure in the output_directory. Let's say we provide
+./cleanup_sims.py -d /path/to/./first/simulation/xtcs -d /path/to/some/other/./simulation -o /output/dir,
+the directories /output/dir/first/simulation/xtcs and
+/output/dir/simulation will be created.</dd>
+<dt><strong><code>out_dir</code></strong> :&ensp;<code>Union[str, Path]</code></dt>
+<dd>The output directory, if you use the
+<code>--trjcat</code> flag, only the final concatenated file will be written to
+the folders in the output directory. The cleaned partial xtc files
+will be put into the same directory they are now in. If &ndash;trjcat is
+not given, all *xtc files in the input directories will be put in
+the folders created in the output directory.</dd>
+<dt><strong><code>dt</code></strong> :&ensp;<code>int</code></dt>
+<dd>Similar to Gromacs' dt option. Only writes frames every frame
+mod dt == 0 picoseconds. This is usually done using subprocess calls
+to gmx trjconv. However, sometimes gromacs screws up and makes a
+dt 100 ps to some dt 92 and some dt 8 ps. If -1 is given all frames
+will be written to output. Defaults to -1.</dd>
+<dt><strong><code>max_time</code></strong> :&ensp;<code>int</code></dt>
+<dd>The maximum time in ps to write trajectories. If some of
+your simulations don't reach that time, an exception will be thrown.
+If -1 is provided, the maximum time per xtcs in a directoyr is used.
+Defaults to -1. If the &ndash;trjcat option is provided and the output
+file fits the -dt and -max flags, the simulation cleanup of that
+simulation is considered finished. So consecutive calls will only
+change the file if the parameters -dt, -max (and -n-atom) change.</dd>
+<dt><strong><code>s</code></strong> :&ensp;<code>str</code></dt>
+<dd>The .tpr files in the directories. Similar to gromacs' -s flag.
+Will overwrite the values set with -deffnm. So setting
+-deffnm production -s some_tpr_file.tpr will look for
+some_tpr_file.tpr in the simulation directories.</dd>
+<dt><strong><code>x</code></strong> :&ensp;<code>str</code></dt>
+<dd>The .xtc files in the directories. Similar to gromacs' -f flag
+(which is -x in mdrun). Will overwrite the values set with -deffnm.
+So setting -deffnm production -x my_traj.xtc will look for
+my_traj.xtc, my_traj.part0001.xtc, my_traj.part0002.xtc and so on in
+the simulation directories. Defaults to traj_comp.xtc.</dd>
+<dt><strong><code>pbc</code></strong> :&ensp;<code>str</code></dt>
+<dd>What to provide for the periodic boundary correction of
+trjconv. Is set to nojump (best for single molecules) per default.
+Can alsobe explicitly set to None, if you don't want any pbc correction.
+The pbc method will be used as the name of the output file.
+So -pbc nojump will produce traj_nojump.xtc in your outout directories
+(if -trjcat is set) or traj_comp_nojump.xtc,
+traj_comp_nojump.part0001.xtc and so on, if -trjcat is not set.
+If -deffnm or -x are set, the filenames of these will be used, so
+that in theory my_traj_file_nojump.xtc and
+my_traj_file_nojump.part0001.xtc are possible.</dd>
+<dt><strong><code>center</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Similar to gromacs trjconv's -[no]center option. If center
+is provided the -ndx-group will be used both for centering and pbc
+removal. If you want different groups for centering and output,
+use the python function (e.g. by writing a short py
+Use the python function and provide a string with newline chara
+cter (\n) to use different groups for pbc and center.</dd>
+<dt><strong><code>output_group_and_center</code></strong> :&ensp;<code>str</code></dt>
+<dd>The string to provide for gmx trjconv to
+center and remove pbcs from. Can either be an integer (0 is most of
+the times the system, 1 is most of the times the protein) or a string
+like System, Protein, or a custom group read from the ndx file, which
+is created if -create-ndx is provided. In any case, if you provide
+-n-atoms, the algorithm will check the output and inform you, when
+it contains a different number of atoms. This will allow you to
+tweak your group selection or make sure, that Gromacs recognizes
+your protein in group 1 correctly.</dd>
+<dt><strong><code>deffnm</code></strong> :&ensp;<code>Optional[str]</code></dt>
+<dd>The default filename for the files in the -d
+input directories. If you run your mdrun simulations with -deffnm
+production, you should also provide production for this argument.
+If -s or -x are set, this will be overwritten.</dd>
+<dt><strong><code>trjcat</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether to concatenate the trajectories from the input
+directories into one long (-max) trajectory. If -trjcat is set, the
+output directory will only contain one .xtc file. The outputs from
+gmx trjconv will be written into the input directories along with
+the inputxtc files.</dd>
+<dt><strong><code>create_pdb</code></strong> :&ensp;<code>bool</code></dt>
+<dd>When given, the output directories will also contain
+start.pdb files that are extracted from the first frame of the
+simulations. These can be used to load the clean trajectries into
+other tools.</dd>
+<dt><strong><code>create_ndx</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If gromac's doesn't recognize your protein as such
+and the index group 1 (Protein) contains the wrong number of atoms,
+you can create index.ndx files in the input directories with this
+option. See the -ndx-group-in flag how to do so.</dd>
+<dt><strong><code>ndx_add_group_stdin</code></strong> :&ensp;<code>str</code></dt>
+<dd>If you have non-standard residues in your
+protein and they are not included in group 1 (protein) of the
+standard index, you can add a custom group using this flag. If you
+have two non-standard residues (LYQ and GLQ) you can create a new
+group from the protein and the residue indices by providing the
+string "Protein | GLQ | LYQ" (these are logical or). This will use
+gmx make_ndx and the simulations .tpr file to create an index.ndx file.
+The -ndx-group flag should then be "Protein_GLQ_LYQ". If you are not
+sure, what to provide he re, play around with your tpr files and
+make_ndx and then start this program with what you learned from there.</dd>
+<dt><strong><code>per_file_timestep_policy</code></strong> :&ensp;<code>PerFileTimestepPolicyType</code></dt>
+<dd>What to do if
+the timesteps in the input files are bad. Possibilities are:
+* 'raise': Raise an Exception, if the timesteps are bad.
+* 'ignore': Continue on your merry way and ignore the
+problems that the future might hold.
+* 'compare_with_dt': If the <code>dt</code> argument is divisible
+by the bad timesteps, we're lucky and can just continue.
+* 'choose_next': If bad timesteps are detected, just choose
+the closest available and continue with dt timesteps
+from there.
+Defaults to 'raise'.</dd>
+<dt><strong><code>inter_file_timetep_policy</code></strong> :&ensp;<code>InterFileTimestepPolicyType</code></dt>
+<dd>What to do
+if the timeteps between two files hint at a gap. Possibilities are:
+* 'raise': Raise an Exception, if the difference between end of
+traj_comp.partXXXX.xtc and start of traj_comp.partXXX+1.xtc
+is larger than <code>dt</code> or even smaller than 0. Which can happen.
+* 'ignore': Not recommended, but a possibility.
+* 'fix_conflicts': We can try to fix the conflicts, if the data
+in the input xtc files is there for all timesteps.
+Defaults to 'raise'.</dd>
+<dt><strong><code>file_exists_policy</code></strong> :&ensp;<code>FileExistsPolicyType</code></dt>
+<dd>What to do, if a file
+already exists. Possibilities are:
+* 'raise': Raise an Exception (aka FileExistsError).
+* 'overwrite': No compromises. Overwrite it.
+* 'continue': Continue looping over input and output files,
+skipping, if a file already exists, without checking
+whether times and timesteps in the file are correct.
+* 'check_and_continue': Check before continuing the loop,
+it might be, that the old file is also wrong.
+* 'check_and_overwrite': Check before continuing the loop,
+but if the file is wrong, fall back to overwriting it.
+Defaults to 'raise'.</dd>
+<dt><strong><code>clean_copies</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Gromacs will leave file copies (#traj_comp.xtc.1#)
+in the directories when output files are already there. Delete
+the copy files. Defaults to False.</dd>
+<dt><strong><code>dry_run</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If dry-run is set to True, no files will be written or
+deleted.</dd>
+<dt><strong><code>logfile</code></strong> :&ensp;<code>str</code></dt>
+<dd>Where to place the logfile at. Defaults to sim_cleanup.log.</dd>
+<dt><strong><code>loglevel</code></strong> :&ensp;<code>str</code></dt>
+<dd>What level to log at. Defaults to WARNING.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cleanup_sims(
+    directories: List[str],
+    out_dir: Union[str, Path],
+    dt: int = -1,
+    max_time: int = -1,
+    n_atoms: int = -1,
+    s: str = &#34;topol.tpr&#34;,
+    x: str = &#34;traj_comp.xtc&#34;,
+    pbc: Union[str, None] = &#34;nojump&#34;,
+    center: bool = False,
+    output_group_and_center: Union[str, int] = 1,
+    deffnm: Optional[str] = None,
+    trjcat: bool = True,
+    create_pdb: bool = True,
+    create_ndx: bool = False,
+    ndx_add_group_stdin: Optional[str] = None,
+    per_file_timestep_policy: PerFileTimestepPolicyType = &#34;raise&#34;,
+    inter_file_timestep_policy: InterFileTimestepPolicyType = &#34;raise&#34;,
+    file_exists_policy: FileExistsPolicyType = &#34;raise&#34;,
+    clean_copies: bool = False,
+    dry_run: bool = False,
+    logfile: Optional[Path] = Path(&#34;sim_cleanup.log&#34;),
+    loglevel: int = logging.INFO,
+) -&gt; None:
+    &#34;&#34;&#34;Cleans up your messy simulations.
+    
+    Uses asyncio and logging to make the process fast
+    and transparent. Main use case is: Remove solvent and
+    change timestep.
+    
+    Features include:
+
+    * Caching of simulation times using metadata.npz files, so consecutive calls
+        to this function are accelerated.
+    * Using native GROMACS command (trjconv, trjcat) for working with
+        xtc files. But if GROMACS does not play along, MDAnalysis will be used.
+    * Using a fast xdr reader to get only times (not coordinates) from input
+        trajectories.
+    * Keeping track of files on disk via imohash. If a file changes through some
+        external commands, the times and timesteps will be reloaded.
+
+    The most important arguments are the `directories`, `out_dir`, `n_atoms`, `dt`,
+    `max_time`. Take some time and read how they are used in this script.
+
+    Although the script can be called from command line, I recommend writing a small
+    python script to call this function.
+
+    ```python
+    #!/usr/bin/env python
+    from cleanup_sims import cleanup_sims
+
+    inp_dirs = [&#34;/path/to/to/dir/./sims1&#34;, &#34;/path/to/./sims2&#34;]
+    out_dir = [&#34;/path/to/clean/sims&#34;]
+
+    cleanup_sims(inp_dirs, out_dir, dt=50, max_time=500)
+    ```
+    
+    Note:
+        The `directories` argument can include truncation marks which will keep the
+        directory structure up to that point. For example, if you provide
+        [&#39;/path/to/./sim_folder/production&#39;] as `directories` and &#39;/home/me/&#39; as
+        `out_dir`, the simulation file without solvent can be found in
+        &#39;/home/me/sim_folder/production/traj.xtc&#39;.
+
+    Args:
+        directories (list[str]): The input directories. You can provide as many
+            as you like. You can include truncation marks similar to rsync in
+            the directory names. These truncation marks will be used to determine
+            the folder structure in the output_directory. Let&#39;s say we provide
+            ./cleanup_sims.py -d /path/to/./first/simulation/xtcs -d /path/to/some/other/./simulation -o /output/dir,
+            the directories /output/dir/first/simulation/xtcs and
+            /output/dir/simulation will be created.
+        out_dir (Union[str, Path]): The output directory, if you use the
+            `--trjcat` flag, only the final concatenated file will be written to
+            the folders in the output directory. The cleaned partial xtc files
+            will be put into the same directory they are now in. If --trjcat is
+            not given, all *xtc files in the input directories will be put in
+            the folders created in the output directory.
+        dt (int): Similar to Gromacs&#39; dt option. Only writes frames every frame
+            mod dt == 0 picoseconds. This is usually done using subprocess calls
+            to gmx trjconv. However, sometimes gromacs screws up and makes a
+            dt 100 ps to some dt 92 and some dt 8 ps. If -1 is given all frames
+            will be written to output. Defaults to -1.
+        max_time (int): The maximum time in ps to write trajectories. If some of
+            your simulations don&#39;t reach that time, an exception will be thrown.
+            If -1 is provided, the maximum time per xtcs in a directoyr is used.
+            Defaults to -1. If the --trjcat option is provided and the output
+            file fits the -dt and -max flags, the simulation cleanup of that
+            simulation is considered finished. So consecutive calls will only
+            change the file if the parameters -dt, -max (and -n-atom) change.
+        s (str): The .tpr files in the directories. Similar to gromacs&#39; -s flag.
+            Will overwrite the values set with -deffnm. So setting
+            -deffnm production -s some_tpr_file.tpr will look for
+            some_tpr_file.tpr in the simulation directories.
+        x (str): The .xtc files in the directories. Similar to gromacs&#39; -f flag
+            (which is -x in mdrun). Will overwrite the values set with -deffnm.
+            So setting -deffnm production -x my_traj.xtc will look for
+            my_traj.xtc, my_traj.part0001.xtc, my_traj.part0002.xtc and so on in
+            the simulation directories. Defaults to traj_comp.xtc.
+        pbc (str): What to provide for the periodic boundary correction of
+            trjconv. Is set to nojump (best for single molecules) per default.
+            Can alsobe explicitly set to None, if you don&#39;t want any pbc correction.
+            The pbc method will be used as the name of the output file.
+            So -pbc nojump will produce traj_nojump.xtc in your outout directories
+            (if -trjcat is set) or traj_comp_nojump.xtc,
+            traj_comp_nojump.part0001.xtc and so on, if -trjcat is not set.
+            If -deffnm or -x are set, the filenames of these will be used, so
+            that in theory my_traj_file_nojump.xtc and
+            my_traj_file_nojump.part0001.xtc are possible.
+        center (bool): Similar to gromacs trjconv&#39;s -[no]center option. If center
+            is provided the -ndx-group will be used both for centering and pbc
+            removal. If you want different groups for centering and output,
+            use the python function (e.g. by writing a short py
+            Use the python function and provide a string with newline chara\
+                cter (\\n) to use different groups for pbc and center.
+        output_group_and_center (str): The string to provide for gmx trjconv to
+            center and remove pbcs from. Can either be an integer (0 is most of
+            the times the system, 1 is most of the times the protein) or a string
+            like System, Protein, or a custom group read from the ndx file, which
+            is created if -create-ndx is provided. In any case, if you provide
+            -n-atoms, the algorithm will check the output and inform you, when
+            it contains a different number of atoms. This will allow you to
+            tweak your group selection or make sure, that Gromacs recognizes
+            your protein in group 1 correctly.
+        deffnm (Optional[str]): The default filename for the files in the -d
+            input directories. If you run your mdrun simulations with -deffnm
+            production, you should also provide production for this argument.
+            If -s or -x are set, this will be overwritten.
+        trjcat (bool): Whether to concatenate the trajectories from the input
+            directories into one long (-max) trajectory. If -trjcat is set, the
+            output directory will only contain one .xtc file. The outputs from
+            gmx trjconv will be written into the input directories along with
+            the inputxtc files.
+        create_pdb (bool): When given, the output directories will also contain
+            start.pdb files that are extracted from the first frame of the
+            simulations. These can be used to load the clean trajectries into
+            other tools.
+        create_ndx (bool): If gromac&#39;s doesn&#39;t recognize your protein as such
+            and the index group 1 (Protein) contains the wrong number of atoms,
+            you can create index.ndx files in the input directories with this
+            option. See the -ndx-group-in flag how to do so.
+        ndx_add_group_stdin (str): If you have non-standard residues in your
+            protein and they are not included in group 1 (protein) of the
+            standard index, you can add a custom group using this flag. If you
+            have two non-standard residues (LYQ and GLQ) you can create a new
+            group from the protein and the residue indices by providing the
+            string &#34;Protein | GLQ | LYQ&#34; (these are logical or). This will use
+            gmx make_ndx and the simulations .tpr file to create an index.ndx file.
+            The -ndx-group flag should then be &#34;Protein_GLQ_LYQ&#34;. If you are not
+            sure, what to provide he re, play around with your tpr files and
+            make_ndx and then start this program with what you learned from there.
+        per_file_timestep_policy (PerFileTimestepPolicyType): What to do if
+            the timesteps in the input files are bad. Possibilities are:
+                * &#39;raise&#39;: Raise an Exception, if the timesteps are bad.
+                * &#39;ignore&#39;: Continue on your merry way and ignore the
+                    problems that the future might hold.
+                * &#39;compare_with_dt&#39;: If the `dt` argument is divisible
+                    by the bad timesteps, we&#39;re lucky and can just continue.
+                * &#39;choose_next&#39;: If bad timesteps are detected, just choose
+                    the closest available and continue with dt timesteps
+                    from there.
+            Defaults to &#39;raise&#39;.
+        inter_file_timetep_policy (InterFileTimestepPolicyType): What to do
+            if the timeteps between two files hint at a gap. Possibilities are:
+                * &#39;raise&#39;: Raise an Exception, if the difference between end of
+                    traj_comp.partXXXX.xtc and start of traj_comp.partXXX+1.xtc
+                    is larger than `dt` or even smaller than 0. Which can happen.
+                * &#39;ignore&#39;: Not recommended, but a possibility.
+                * &#39;fix_conflicts&#39;: We can try to fix the conflicts, if the data
+                    in the input xtc files is there for all timesteps.
+            Defaults to &#39;raise&#39;.
+        file_exists_policy (FileExistsPolicyType): What to do, if a file
+            already exists. Possibilities are:
+                * &#39;raise&#39;: Raise an Exception (aka FileExistsError).
+                * &#39;overwrite&#39;: No compromises. Overwrite it.
+                * &#39;continue&#39;: Continue looping over input and output files,
+                    skipping, if a file already exists, without checking
+                    whether times and timesteps in the file are correct.
+                * &#39;check_and_continue&#39;: Check before continuing the loop,
+                    it might be, that the old file is also wrong.
+                * &#39;check_and_overwrite&#39;: Check before continuing the loop,
+                    but if the file is wrong, fall back to overwriting it.
+            Defaults to &#39;raise&#39;.
+        clean_copies (bool): Gromacs will leave file copies (#traj_comp.xtc.1#)
+            in the directories when output files are already there. Delete
+            the copy files. Defaults to False.
+        dry_run (bool): If dry-run is set to True, no files will be written or
+            deleted.
+        logfile (str): Where to place the logfile at. Defaults to sim_cleanup.log.
+        loglevel (str): What level to log at. Defaults to WARNING.
+
+    &#34;&#34;&#34;
+    pbcs_ = [&#34;mol&#34;, &#34;res&#34;, &#34;atom&#34;, &#34;nojump&#34;, &#34;cluster&#34;, &#34;whole&#34;, &#34;None&#34;]
+    if not pbc in pbcs_:
+        raise Exception(f&#34;Please choose one of {pbcs_} for `pbc`&#34;)
+    if pbc == &#34;None&#34;:
+        pbc = None
+
+    # get the logger
+    logger = _get_logger(logfile, singular=True, loglevel=loglevel)
+
+    # set global dryrun
+    global _dryrun
+    _dryrun = dry_run
+
+    # set the terminator
+    logging.StreamHandler.terminator = &#34;\n&#34;
+
+    # print a start
+    logger.info(&#34;Started to clean up simulations.&#34;)
+
+    # if center is given, we need to duplicate the output
+    output_group_and_center = str(output_group_and_center)
+    if center:
+        output_group_and_center = (
+            output_group_and_center + &#34;\n&#34; + output_group_and_center + &#34;\n&#34;
+        )
+        center = &#34;center&#34;
+    else:
+        output_group_and_center += &#34;\n&#34;
+        center = &#34;nocenter&#34;
+
+    # check the input policies
+    if per_file_timestep_policy not in PerFileTimestepPolicyType.__args__:
+        raise ValueError(
+            f&#34;The `per_file_timestep_policy` needs to be one of the following: &#34;
+            f&#34;{PerFileTimestepPolicyType}, but you provided: {per_file_timestep_policy}&#34;
+        )
+    if inter_file_timestep_policy not in InterFileTimestepPolicyType.__args__:
+        raise ValueError(
+            f&#34;The `inter_file_timestep_policy` needs to be one of the following: &#34;
+            f&#34;{InterFileTimestepPolicyType}, but you provided: {inter_file_timestep_policy}&#34;
+        )
+    if file_exists_policy not in FileExistsPolicyType.__args__:
+        raise ValueError(
+            f&#34;The `file_exists_policy` needs to be one of the following: &#34;
+            f&#34;{FileExistsPolicyType}, but you provided: {file_exists_policy}&#34;
+        )
+
+    # get the input and the predefined output
+    simulations = map_in_and_out_files(directories, out_dir, x, pbc, deffnm, trjcat)
+
+    # based on this we can already collect the commands to create pdb files
+    if create_pdb:
+        pdb_commands = []
+        for sim_dir, simulation in simulations.items():
+            if not simulation[&#34;trjcat&#34;]:
+                for inp_file, out_file in simulation.items():
+                    if inp_file != &#34;trjcat&#34;:
+                        tpr_file = inp_file.parent / s
+                        break
+            else:
+                for inp_file, out_file in simulation.items():
+                    # this is agnostic to whether trjcat is True or False
+                    # important is only, whether the directories are the same
+                    if inp_file == &#34;trjcat&#34;:
+                        tpr_file = sim_dir / s
+                        break
+                    if inp_file.parent != out_file.parent:
+                        tpr_file = inp_file.parent / s
+                        break
+
+            if deffnm is not None and s == &#34;topol.tpr&#34;:
+                s = deffnm + &#34;.tpr&#34;
+            pdb_out_file = out_file.parent / &#34;start.pdb&#34;
+            pdb_cmd = (
+                f&#34;gmx trjconv -f {out_file} -s {tpr_file} -o {pdb_out_file} -dump 0&#34;
+            )
+            if center:
+                pdb_cmd += &#34; -center&#34;
+            if create_ndx:
+                pdb_cmd += f&#34; -n {tpr_file.parent / &#39;index.ndx&#39;}&#34;
+            pdb_cmd = {
+                &#34;cmd&#34;: pdb_cmd,
+                &#34;stdin&#34;: output_group_and_center,
+                &#34;out_file&#34;: pdb_out_file,
+                &#34;n_atoms&#34;: n_atoms,
+            }
+            pdb_commands.append(pdb_cmd)
+
+    assert len(simulations) == len(directories)
+    logger.info(f&#34;{len(simulations)} simulations will be cleaned up.&#34;)
+
+    # write the ndx files
+    if create_ndx:
+        asyncio.run(
+            create_ndx_files(
+                simulations,
+                s,
+                deffnm,
+                n_atoms,
+                ndx_add_group_stdin,
+                file_exists_policy,
+                logger,
+            )
+        )
+
+    # prepeare everything
+    # this method filters out what actually needs to be done and whether it is doable
+    # out comes a dictionary that can be passed to asyncio
+    plans = asyncio.run(
+        prepare_sim_cleanup(
+            simulations,
+            max_time,
+            dt,
+            n_atoms,
+            per_file_timestep_policy,
+            inter_file_timestep_policy,
+            file_exists_policy,
+            logger,
+        )
+    )
+    # to the plans, we add the tpr, ndx, center, s, output_group_and_center
+    async_commands = []
+    concat_commands = []
+    for i, (plan, (sim_dir, sim_files)) in enumerate(zip(plans, simulations.items())):
+        # find the tpr file in the directory
+        if deffnm is not None and s == &#34;topol.tpr&#34;:
+            s = deffnm + &#34;.tpr&#34;
+        tpr_file = sim_dir / s
+        assert tpr_file.is_file(), print(f&#34;.tpr file {tpr_file} does not exist.&#34;)
+
+        if create_ndx:
+            ndx_file = sim_dir / &#34;index.ndx&#34;
+            assert ndx_file.is_file(), print(f&#34;.tpr file {tpr_file} does not exist.&#34;)
+
+        for inp_file, command in plan.items():
+            if inp_file == &#34;trjcat&#34;:
+                command = {
+                    &#34;cmd&#34;: f&#34;gmx trjcat -f CAT_FILES -o {command[&#39;out_file&#39;]}&#34;,
+                    &#34;b&#34;: 0,
+                    &#34;e&#34;: max_time,
+                    &#34;dt&#34;: dt,
+                    &#34;out_file&#34;: command[&#34;out_file&#34;],
+                    &#34;stdin&#34;: output_group_and_center,
+                    &#34;n_atoms&#34;: n_atoms,
+                    &#34;inp_files&#34;: command[&#34;files&#34;],
+                    &#34;s&#34;: tpr_file,
+                }
+                concat_commands.append(command)
+            else:
+                command = {
+                    &#34;cmd&#34;: f&#34;gmx trjconv -s {tpr_file} -f {inp_file} -o {command[&#39;out_file&#39;]} &#34;
+                    f&#34;-{center} -b {command[&#39;b&#39;]} -e {command[&#39;e&#39;]} -dt {command[&#39;dt&#39;]}&#34;,
+                    &#34;b&#34;: command[&#34;b&#34;],
+                    &#34;e&#34;: command[&#34;e&#34;],
+                    &#34;dt&#34;: command[&#34;dt&#34;],
+                    &#34;out_file&#34;: command[&#34;out_file&#34;],
+                    &#34;stdin&#34;: output_group_and_center,
+                    &#34;n_atoms&#34;: n_atoms,
+                    &#34;inp_file&#34;: inp_file,
+                    &#34;s&#34;: tpr_file,
+                }
+                if pbc is not None:
+                    command[&#34;cmd&#34;] += f&#34; -pbc {pbc}&#34;
+                if create_ndx:
+                    command[&#34;cmd&#34;] += f&#34; -n {ndx_file}&#34;
+                    command[&#34;n&#34;] = ndx_file
+                async_commands.append(command)
+
+    # set the event loop for the gathers
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    # run the commands asynchronously
+    if async_commands:
+        result = loop.run_until_complete(
+            run_async_commands(
+                async_commands,
+                logger,
+            )
+        )
+        print(result)
+
+    if concat_commands:
+        loop.run_until_complete(
+            async_run_concat_commands(
+                concat_commands,
+                logger=logger,
+            )
+        )
+
+    if create_pdb:
+        loop.run_until_complete(
+            async_run_create_pdb(
+                pdb_commands,
+                n_atoms,
+                file_exists_policy,
+                logger=logger,
+            )
+        )
+
+    if clean_copies:
+        pass
+        # copy_files = list(list(sims.values())[0].parent.glob(&#34;#*&#34;))
+        # logger.debug(
+        #     f&#34;Deleting {len(copy_files)} copy files (filenames like this: {copy_files[0]})&#34;
+        # )
+        # for f in copy_files:
+        #     f.unlink()
+
+    logger.info(&#34;All finished. Rejoice.&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul>
+<li><a href="#cleanup_simspy">Cleanup_sims.py</a><ul>
+<li><a href="#coverage-and-unittest-report">Coverage and Unittest Report</a></li>
+</ul>
+</li>
+<li><a href="#command-line-usage">Command line usage:</a></li>
+<li><a href="#python-api">Python API</a><ul>
+<li><a href="#example">Example</a></li>
+<li><a href="#call-signature">Call signature</a></li>
+</ul>
+</li>
+<li><a href="#in-depth-explanation">In-depth explanation</a><ul>
+<li><a href="#basic-concepts">Basic concepts</a><ul>
+<li><a href="#a-good-simulation">A good simulation</a></li>
+<li><a href="#overview-of-operations">Overview of operations</a></li>
+<li><a href="#files">Files</a></li>
+</ul>
+</li>
+<li><a href="#cases">Cases</a><ul>
+<li><a href="#problem-case-1-overlapping-timestamps-without-discarding">Problem case 1: Overlapping timestamps without discarding</a></li>
+<li><a href="#problem-case-2-uneven-timesteps-with-overlapping-timestamps">Problem case 2: Uneven timesteps with overlapping timestamps</a></li>
+<li><a href="#problem-case-3-uneven-timesteps-with-overlapping-trajectories">Problem case 3: Uneven timesteps with overlapping trajectories</a></li>
+<li><a href="#problem-case-4-uneven-timesteps-with-breaking-alterations">Problem case 4: Uneven timesteps with breaking alterations</a></li>
+<li><a href="#problem-case-5-missing-times-between-files">Problem case 5: Missing times between files.</a></li>
+<li><a href="#problem-case-6-redundant-files">Problem case 6: Redundant files.</a></li>
+<li><a href="#problem-case-7-and-8-one-timestamp-zero-timestap-trajs">Problem case 7 and 8: One-timestamp-zero-timestap trajs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="cleanup_sims" href="index.html">cleanup_sims</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="cleanup_sims.cleanup_sims.cleanup_sims" href="#cleanup_sims.cleanup_sims.cleanup_sims">cleanup_sims</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
