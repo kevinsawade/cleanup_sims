@@ -15,7 +15,7 @@ https://kevinsawade.github.io/cleanup_sims
 Run
 
 ```bash
-$ pip install cleanup_sims
+$ pip install cleanup-sims
 ```
 
 # Usage

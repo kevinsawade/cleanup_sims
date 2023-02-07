@@ -97,7 +97,7 @@ src_paths = ["encodermap", "tests"]
 # project settings
 [build-system]
 requires = ["setuptools", "setuptools-scm"]
-build-bakcend = "setuptools.buil_meta"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "cleanup_sims"
