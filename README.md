@@ -1,5 +1,5 @@
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL_v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
-![CI](https://github.com/kevinsawade/cleanup_sims/actions/workflows/CI.yml/badge.svg)
+[![Unittests](https://github.com/kevinsawade/cleanup_sims/actions/workflows/CI.yaml/badge.svg)](https://github.com/kevinsawade/cleanup_sims/actions/workflows/CI.yaml)
 [![codecov](https://codecov.io/gh/kevinsawade/cleanup_sims/branch/main/graph/badge.svg?token=MYMAFVMXZX)](https://codecov.io/gh/kevinsawade/cleanup_sims)
 
 # Cleanup Sims
