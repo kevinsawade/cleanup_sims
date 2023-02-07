@@ -2464,6 +2464,9 @@ def cleanup_sims(
 # Argparse and make it a script
 ################################################################################
 
+def main(argv: Optional[Sequence[str]] = None) -> int:
+    args = vars(parser.parse_args(argv))
+    return cleanup_sims(**args)
+
 if __name__ == "__main__":
-    args = vars(parser.parse_args())
-    cleanup_sims(**args)
+    raise SystemExit(main())

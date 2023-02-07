@@ -93,3 +93,28 @@ verbose = false
 [tool.isort]
 profile = "black"
 src_paths = ["encodermap", "tests"]
+
+# project settings
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-bakcend = "setuptools.buil_meta"
+
+[project]
+name = "cleanup_sims"
+authors = [
+    {name="Kevin Sawade", email="kevin.sawade@uni-konstanz.de"}
+]
+description = "Cleans up your messy Gromacs simulations"
+readme = "README.md"
+requires-python = ">=3.9"
+keywords = ["gromacs", "molecular-dynamics"]
+license = {file = "LICENSE"}
+dependencies = [
+    "MDAnalysis",
+    "numpy",
+    "imohash"
+]
+version = "0.0.1"
+
+[project.scripts]
+cleanup_sims = "cleanup_sims.cleanup_sims:main"

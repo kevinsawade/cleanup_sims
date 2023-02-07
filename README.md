@@ -9,3 +9,19 @@ Cleans up your messy MD simulations.
 Visit the documentation under:
 
 https://kevinsawade.github.io/cleanup_sims
+
+# Installation
+
+Run
+
+```bash
+$ pip install cleanup_sims
+```
+
+# Usage
+
+This will install a command-line tool called `cleanup_sims` in your python environment. Access the help with
+
+```bash
+$ cleanup_sims -h
+```
