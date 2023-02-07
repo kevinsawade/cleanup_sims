@@ -484,7 +484,7 @@ def update_gmx_environ(
     version: Optional[str] = "2020.6",
     cuda: Optional[bool] = True,
     AVX512: Optional[bool] = False,
-) -> None:
+) -> None: # pragma: no cover
     """Updates the current environment variables specified by a GMXRC.bash
 
     Keyword Args:
@@ -542,7 +542,7 @@ def get_lsb() -> str:
         )
 
 
-def shell_source(script: str):
+def shell_source(script: str): # pragma: no cover
     """Sometime you want to emulate the action of "source" in bash,
     settings some environment variables. Here is a way to do it.
 
