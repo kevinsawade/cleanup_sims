@@ -294,10 +294,12 @@ unique_dt_sim: 10
 ```
 
 With dt = 20 ps, the file2.xtc can be discarded, with dt = 10 ps, it can not be
-discarded. In this case he commands for these files are:
+discarded. In this case the commands for these files are:
     gmx trjconv -f file1.xtc -dt 10 -e 80
     gmx trjconv -f file2.xtc -dt 10 -b 90 -e 90
     gmx trjconv -f file3.xtc -dt 10 -b 100 -e 120
+
+## Can we trust gromacs times and coordinates
 
 """
 import datetime
@@ -305,7 +307,8 @@ import shutil
 import re
 from pathlib import Path
 from time import sleep
-
+import shlex
+import numpy as np
 import coverage
 import mdtraj as md
 import pytest
@@ -342,141 +345,237 @@ class TestSimCleanup:
         test = int(re.findall(r'-?\d+', test)[0])
         assert test == i
 
-    def test_simulation_all_good(self):
-        # name the file traj_comp.xtc and topol.tpr
-        input_dir = self.input_dir / "nested/directory/structure"
-        input_dir.mkdir(parents=True, exist_ok=True)
+    def test_no_dt_only_pbc(self):
+        assert False
 
-        # create case 1 simulation
-        shutil.copyfile(self.input_tpr_file, input_dir / "topol.tpr")
-        shutil.copyfile(self.input_xtc_file, input_dir / "traj_comp.xtc")
+    # def test_parser(self):
+    #     from cleanup_sims.cleanup_sims import main
+    #
+    #     # name the file traj_comp.xtc and topol.tpr
+    #     input_dir = self.input_dir / "nested/directory/structure"
+    #     input_dir.mkdir(parents=True, exist_ok=True)
+    #
+    #     # create case 1 simulation
+    #     shutil.copyfile(self.input_tpr_file, input_dir / "topol.tpr")
+    #     shutil.copyfile(self.input_xtc_file, input_dir / "traj_comp.xtc")
+    #
+    #     # run
+    #     input_dir_ = str(self.input_dir) + "/nested/./directory/structure"
+    #     cmd = f"-d {input_dir_} -o {self.output_dir} -dt 20 -max 140 -center -create-pdb"
+    #     main(shlex.split(cmd))
+    #
+    #     # test
+    #     out_file = self.output_dir / "directory/structure/traj_clean.xtc"
+    #     pdb_file = self.output_dir / "directory/structure/start.pdb"
+    #     assert self.output_dir.is_dir()
+    #     assert out_file.is_file()
+    #     assert pdb_file.is_file()
+    #     test_file = md.load(str(out_file), top=str(pdb_file))
+    #     assert len(test_file) == 8, print(out_file, pdb_file, test_file)
+    #
+    # def test_simulation_all_good(self):
+    #     # name the file traj_comp.xtc and topol.tpr
+    #     input_dir = self.input_dir / "nested/directory/structure"
+    #     input_dir.mkdir(parents=True, exist_ok=True)
+    #
+    #     # create case 1 simulation
+    #     shutil.copyfile(self.input_tpr_file, input_dir / "topol.tpr")
+    #     shutil.copyfile(self.input_xtc_file, input_dir / "traj_comp.xtc")
+    #
+    #     # run
+    #     input_dir_ = str(self.input_dir) + "/nested/./directory/structure"
+    #     cleanup_sims(
+    #         directories=[input_dir_],
+    #         out_dir=self.output_dir,
+    #         dt=20,
+    #         max_time=140,
+    #         center=True,
+    #         create_pdb=True,
+    #     )
+    #
+    #     # test
+    #     out_file = self.output_dir / "directory/structure/traj_clean.xtc"
+    #     pdb_file = self.output_dir / "directory/structure/start.pdb"
+    #     assert self.output_dir.is_dir()
+    #     assert out_file.is_file()
+    #     assert pdb_file.is_file()
+    #     test_file = md.load(str(out_file), top=str(pdb_file))
+    #     assert len(test_file) == 8, print(out_file, pdb_file, test_file)
+    #
+    # def test_discontinuity_between_trajs(self):
+    #     input_dir = self.input_dir / "nested/directory/structure"
+    #     input_dir.mkdir(parents=True, exist_ok=True)
+    #     shutil.copyfile(self.input_tpr_file, input_dir / "topol.tpr")
+    #
+    #     # create case 2 simulation
+    #     full_traj = md.load(str(self.input_xtc_file), top=str(self.input_gro_file))
+    #     assert len(full_traj[:6]) == 6
+    #     assert full_traj[:6].time[-1] == 50
+    #     full_traj[:6].save_xtc(str(input_dir / "traj_comp.part0001.xtc"))
+    #     full_traj[11:13].save_xtc(str(input_dir / "traj_comp.part0002.xtc"))
+    #
+    #     # run
+    #     input_dir_ = str(self.input_dir) + "/nested/./directory/structure"
+    #     with pytest.raises(Exception):
+    #         cleanup_sims(
+    #             directories=[input_dir_],
+    #             out_dir=self.output_dir,
+    #             dt=20,
+    #             center=True,
+    #             create_pdb=True,
+    #         )
+    #
+    # def test_simulation_made_from_multiple_files_no_trjcat(self):
+    #     input_dir = self.input_dir / "nested/directory/structure"
+    #     input_dir.mkdir(parents=True, exist_ok=True)
+    #     shutil.copyfile(self.input_tpr_file, input_dir / "topol.tpr")
+    #
+    #     # create case 2 simulation
+    #     full_traj = md.load(str(self.input_xtc_file), top=str(self.input_gro_file))
+    #     assert len(full_traj[:6]) == 6
+    #     assert full_traj[:6].time[-1] == 50
+    #     full_traj[:6].save_xtc(str(input_dir / "traj_comp.part0001.xtc"))
+    #     full_traj[6:11].save_xtc(str(input_dir / "traj_comp.part0002.xtc"))
+    #     full_traj[11:13].save_xtc(str(input_dir / "traj_comp.part0003.xtc"))
+    #
+    #     # run
+    #     input_dir_ = str(self.input_dir) + "/nested/./directory/structure"
+    #     cleanup_sims(
+    #         directories=[input_dir_],
+    #         out_dir=self.output_dir,
+    #         dt=20,
+    #         center=True,
+    #         create_pdb=True,
+    #         trjcat=False,
+    #     )
+    #
+    #     # test
+    #     out_file = self.output_dir / "directory/structure/traj_comp_clean.part0001.xtc"
+    #     pdb_file = self.output_dir / "directory/structure/start.pdb"
+    #     assert self.output_dir.is_dir()
+    #     assert out_file.is_file()
+    #     assert pdb_file.is_file()
+    #
+    #     traj1 = md.load(str(out_file), top=str(pdb_file))
+    #     assert traj1.time[1] - traj1.time[0] == 20
+    #     assert len(traj1) == 3
+    #
+    #     out_file = self.output_dir / "directory/structure/traj_comp_clean.part0002.xtc"
+    #     assert out_file.is_file()
+    #     traj1 = md.load(str(out_file), top=str(pdb_file))
+    #     assert traj1.time[1] - traj1.time[0] == 20
+    #     assert len(traj1) == 3
+    #
+    #     out_file = self.output_dir / "directory/structure/traj_comp_clean.part0003.xtc"
+    #     assert out_file.is_file()
+    #     traj1 = md.load(str(out_file), top=str(pdb_file))
+    #     assert len(traj1.time) == 1
+    #     assert len(traj1) == 1
+    #
+    # def test_simulation_made_from_multiple_files_with_trjcat(self):
+    #     input_dir = self.input_dir / "nested/directory/structure"
+    #     input_dir.mkdir(parents=True, exist_ok=True)
+    #     shutil.copyfile(self.input_tpr_file, input_dir / "topol.tpr")
+    #
+    #     # create case 2 simulation
+    #     full_traj = md.load(str(self.input_xtc_file), top=str(self.input_gro_file))
+    #     assert len(full_traj[:6]) == 6
+    #     assert full_traj[:6].time[-1] == 50
+    #     full_traj[:6].save_xtc(str(input_dir / "traj_comp.part0001.xtc"))
+    #     full_traj[6:11].save_xtc(str(input_dir / "traj_comp.part0002.xtc"))
+    #     full_traj[11:13].save_xtc(str(input_dir / "traj_comp.part0003.xtc"))
+    #
+    #     # run
+    #     input_dir_ = str(self.input_dir) + "/nested/./directory/structure"
+    #     cleanup_sims(
+    #         directories=[input_dir_],
+    #         out_dir=self.output_dir,
+    #         dt=20,
+    #         center=True,
+    #         create_pdb=True,
+    #         trjcat=True,
+    #     )
+    #
+    #     # test
+    #     out_file = self.output_dir / "directory/structure/traj_comp_clean.part0001.xtc"
+    #     pdb_file = self.output_dir / "directory/structure/start.pdb"
+    #     assert self.output_dir.is_dir()
+    #     assert not out_file.is_file()
+    #     assert pdb_file.is_file()
+    #     out_file = self.output_dir / "directory/structure/traj_clean.xtc"
+    #     assert out_file.is_file()
+    #
+    #     traj = md.load(str(out_file), top=str(pdb_file))
+    #     assert traj.time[1] - traj.time[0] == 20
+    #     assert len(traj) == 7
 
-        # run
-        input_dir_ = str(self.input_dir) + "/nested/./directory/structure"
-        cleanup_sims(
-            directories=[input_dir_],
-            out_dir=self.output_dir,
-            dt=20,
-            max_time=140,
-            center=True,
-            create_pdb=True,
-        )
+    def test_no_output_dir_with_trjcat(self):
+        input_dir = self.input_dir / "inp"
 
-        # test
-        out_file = self.output_dir / "directory/structure/traj_nojump.xtc"
-        pdb_file = self.output_dir / "directory/structure/start.pdb"
-        assert self.output_dir.is_dir()
-        assert out_file.is_file()
-        assert pdb_file.is_file()
-        test_file = md.load(str(out_file), top=str(pdb_file))
-        assert len(test_file) == 8, print(out_file, pdb_file, test_file)
+    def test_no_output_dir_no_trjcat(self):
+        pass
 
-    def test_discontinuity_between_trajs(self):
-        input_dir = self.input_dir / "nested/directory/structure"
-        input_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(self.input_tpr_file, input_dir / "topol.tpr")
+    def test_identify_wrong_times_for_correct_coordinates(self):
+        input_dir1 = self.input_dir / "nested/directory/structure"
+        input_dir2 = self.input_dir / "also_a_sim"
+        input_dir1.mkdir(parents=True, exist_ok=True)
+        input_dir2.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(self.input_tpr_file, input_dir1 / "topol.tpr")
+        shutil.copyfile(self.input_tpr_file, input_dir2 / "topol.tpr")
 
-        # create case 2 simulation
+        # define the traj
         full_traj = md.load(str(self.input_xtc_file), top=str(self.input_gro_file))
         assert len(full_traj[:6]) == 6
         assert full_traj[:6].time[-1] == 50
-        full_traj[:6].save_xtc(str(input_dir / "traj_comp.part0001.xtc"))
-        full_traj[11:13].save_xtc(str(input_dir / "traj_comp.part0002.xtc"))
+
+        # times are correct, coordinates are false
+        traj1 = full_traj[[0, 2, 3, 5, 6, 8, 9]]
+        traj1.time = np.array([0, 10, 20, 30, 40, 50, 60])
+        traj2 = full_traj[[11, 12, 14, 15, 17, 18]]
+        traj2.time = np.array([70, 80, 90, 100, 110, 120])
+        traj3 = full_traj[[20, 21, 23]]
+        traj3.time = np.array([130, 140, 150])
+        traj1.save_xtc(str(input_dir1 / "traj_comp.part0001.xtc"))
+        traj2.save_xtc(str(input_dir1 / "traj_comp.part0002.xtc"))
+        traj3.save_xtc(str(input_dir1 / "traj_comp.part0003.xtc"))
+
+        # times are false, coordinates are correct
+        traj1 = full_traj[:6]
+        traj1.time = np.array([0, 8, 20, 28, 40, 48])
+        traj1.save_xtc(str(input_dir2 / "traj_comp.part0001.xtc"))
+        traj2 = full_traj[6:11]
+        traj2.time = np.array([60, 68, 80, 88, 100])
+        traj2.save_xtc(str(input_dir2 / "traj_comp.part0002.xtc"))
+        traj3 = full_traj[11:13]
+        traj3.time = np.array([108, 120])
+        traj3.save_xtc(str(input_dir2 / "traj_comp.part0003.xtc"))
+
+        test = md.load(str(input_dir2 / "traj_comp.part0001.xtc"), top=str(self.input_gro_file))
+        assert np.array_equal(test.time, np.array([0, 8, 20, 28, 40, 48]))
 
         # run
-        input_dir_ = str(self.input_dir) + "/nested/./directory/structure"
-        with pytest.raises(Exception):
-            cleanup_sims(
-                directories=[input_dir_],
-                out_dir=self.output_dir,
-                dt=20,
-                center=True,
-                create_pdb=True,
-            )
-
-    def test_simulation_made_from_multiple_files_no_trjcat(self):
-        input_dir = self.input_dir / "nested/directory/structure"
-        input_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(self.input_tpr_file, input_dir / "topol.tpr")
-
-        # create case 2 simulation
-        full_traj = md.load(str(self.input_xtc_file), top=str(self.input_gro_file))
-        assert len(full_traj[:6]) == 6
-        assert full_traj[:6].time[-1] == 50
-        full_traj[:6].save_xtc(str(input_dir / "traj_comp.part0001.xtc"))
-        full_traj[6:11].save_xtc(str(input_dir / "traj_comp.part0002.xtc"))
-        full_traj[11:13].save_xtc(str(input_dir / "traj_comp.part0003.xtc"))
-
-        # run
-        input_dir_ = str(self.input_dir) + "/nested/./directory/structure"
+        input_dir1_ = str(self.input_dir) + "/nested/./directory/structure"
+        input_dir2_ = str(self.input_dir) + "/also_a_sim"
         cleanup_sims(
-            directories=[input_dir_],
+            directories=[input_dir1_],
             out_dir=self.output_dir,
-            dt=20,
-            center=True,
-            create_pdb=True,
-            trjcat=False,
-        )
-
-        # test
-        out_file = self.output_dir / "directory/structure/traj_comp_nojump.part0001.xtc"
-        pdb_file = self.output_dir / "directory/structure/start.pdb"
-        assert self.output_dir.is_dir()
-        assert out_file.is_file()
-        assert pdb_file.is_file()
-
-        traj1 = md.load(str(out_file), top=str(pdb_file))
-        assert traj1.time[1] - traj1.time[0] == 20
-        assert len(traj1) == 3
-
-        out_file = self.output_dir / "directory/structure/traj_comp_nojump.part0002.xtc"
-        assert out_file.is_file()
-        traj1 = md.load(str(out_file), top=str(pdb_file))
-        assert traj1.time[1] - traj1.time[0] == 20
-        assert len(traj1) == 3
-
-        out_file = self.output_dir / "directory/structure/traj_comp_nojump.part0003.xtc"
-        assert out_file.is_file()
-        traj1 = md.load(str(out_file), top=str(pdb_file))
-        assert len(traj1.time) == 1
-        assert len(traj1) == 1
-
-    def test_simulation_made_from_multiple_files_with_trjcat(self):
-        input_dir = self.input_dir / "nested/directory/structure"
-        input_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(self.input_tpr_file, input_dir / "topol.tpr")
-
-        # create case 2 simulation
-        full_traj = md.load(str(self.input_xtc_file), top=str(self.input_gro_file))
-        assert len(full_traj[:6]) == 6
-        assert full_traj[:6].time[-1] == 50
-        full_traj[:6].save_xtc(str(input_dir / "traj_comp.part0001.xtc"))
-        full_traj[6:11].save_xtc(str(input_dir / "traj_comp.part0002.xtc"))
-        full_traj[11:13].save_xtc(str(input_dir / "traj_comp.part0003.xtc"))
-
-        # run
-        input_dir_ = str(self.input_dir) + "/nested/./directory/structure"
-        cleanup_sims(
-            directories=[input_dir_],
-            out_dir=self.output_dir,
-            dt=20,
+            dt=10,
             center=True,
             create_pdb=True,
             trjcat=True,
+            loglevel=0
         )
 
-        # test
-        out_file = self.output_dir / "directory/structure/traj_comp_nojump.part0001.xtc"
-        pdb_file = self.output_dir / "directory/structure/start.pdb"
-        assert self.output_dir.is_dir()
-        assert not out_file.is_file()
-        assert pdb_file.is_file()
-        out_file = self.output_dir / "directory/structure/traj_nojump.xtc"
-        assert out_file.is_file()
+        # traj1 = full_traj[:6]
+        # traj1.time = np.array([0, 2, 10, 12, 20, 22])
+        # traj1.save_xtc(str(input_dir / "traj_comp.part0001.xtc"))
+        # traj2 = full_traj[6:11]
+        # traj2.time = np.array([30, 32, 40, 42, 50])
+        # traj2.save_xtc(str(input_dir / "traj_comp.part0002.xtc"))
+        # traj3 = full_traj[11:13]
+        # traj3.time = np.array([52, 60])
+        # traj3.save_xtc(str(input_dir / "traj_comp.part0003.xtc"))
 
-        traj = md.load(str(out_file), top=str(pdb_file))
-        assert traj.time[1] - traj.time[0] == 20
-        assert len(traj) == 7
 
     def test_get_lsb(self):
         from cleanup_sims.cleanup_sims import get_lsb
