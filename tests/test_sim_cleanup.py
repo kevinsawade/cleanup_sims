@@ -1,11 +1,14 @@
-"""Unittests for sim_cleanup.
+"""# In-depth explanation
 
-## A good simulation
+## Basic concepts
+
+### A good simulation
 In the following test cases, I will discern between timestamp and timestep.
 A timestamp is the time of the frame (xyz coordinates of the atoms). A timestep
 is the time between two timestamps. Based on this a normal simulation is
 made up from frames like this:
 
+```
 ################################################################################
 Simulation 1:
 timestamps: |0   10   20   30   40   50   60   70   80   90   100   110   120
@@ -15,7 +18,7 @@ timesteps:  |  10   10   10   10   10   10   10   10   10   10    10   10
 max_time_sim: 120
 unique_dt_sim: 10
 ################################################################################
-
+```
 
 ### Overview of operations
 
@@ -25,7 +28,7 @@ The following operations can be done on such simulations:
     * Choose a different max_time < max_tim_sim.
     * Choose a different dt with unique_dt_sim % dt == 0.
 
-## Files
+### Files
 
 However, not all simulations are made up of a single file with nice timesteps.
 They might consist of multiple files with a different number of errors. Let's first
@@ -43,10 +46,11 @@ this pattern: traj_comp.xtc, traj_comp.part0002.xtc, traj_comp.part0003.xtc. In 
 remainder of this explanation, I will name the files only file1.xtc, file2.xtc, etc.
 The distinction between append/noappend/append-noappend is easy to implement.
 
-## Simulations with multiple files.
+## Cases
 
 Some simulations might have multiple files:
 
+```
 ################################################################################
 Simulation 2:
 timestamps: |0   10   20   30   40   50
@@ -64,6 +68,7 @@ timesteps:                                                       |     10
 max_time_sim: 120
 unique_dt_sim: 10
 ################################################################################
+```
 
 These simulations are also pretty easy to treat. With the trjconv and trjcat
 command, they can be sliced as needed. Let's say the user wants mas_time = 100 ps
@@ -71,6 +76,7 @@ and dt = 20 ps. The file1.xtc will be used as input for trconv and a new file wi
 the timestamps (0, 20, 40) will be written. From file2.xtc the timestamps (60, 80, 100)
 will be written. File3.xtc can be ignored. After the trjcat simulation 2 looks like this:
 
+```
 ################################################################################
 Simulation 2 after trjconv:
 timestamps: |0        20        40
@@ -81,15 +87,18 @@ timestamps:                              |60        80        100
 timeline:                                |<--file2_nosolv.xtc-->|
 timesteps:                               |     20        20
 ################################################################################
+```
 
 A call to gmx trjcat then will concatenate these files and result in:
 
+```
 ################################################################################
 Simulation 2 after trjcat:
 timestamps: |0        20        40        60        80        100
 timeline:   |<---------------file_nosolv.xtc------------------->|
 timesteps:  |    20        20        20        20        20
 ################################################################################
+```
 
 After this the cleanup is finished. Problems come from simulations which can look
 like this:
@@ -99,6 +108,7 @@ like this:
 To be honest, I have no idea, how these arrangements of files can be written
 by gmx mdrun. I am only here to clean them up.
 
+```
 ################################################################################
 Simulation 3:
 timestamps: |0   10   20   30   40   50
@@ -116,6 +126,7 @@ timesteps:                                                       |     10
 max_time_sim: 120
 unique_dt_sim: 10
 ################################################################################
+```
 
 Let's say, we want max_time = 120 ps and dt = 20 ps. In that case, we need to
 tell gmx trjconv to use a different start time (flag -b) for file2.xtc. The commands
@@ -129,6 +140,7 @@ are:
 This is another problem, which I don't have the willpower to trace back. Some
 gromacs simulations I did, had timesteps tike these:
 
+```
 ################################################################################
 Simulation 3:
 timestamps: |0   8    20   28   40   48
@@ -146,6 +158,7 @@ timesteps:                                                       |     12
 max_time_sim: 120
 unique_dt_sim: [8, 12]
 ################################################################################
+```
 
 For this simulation **Choosing a dt of 10 ps is not possible**. However, choosing a
 dt of 20 ps is still possible, because of how the timestamps are laid out. Cleanup_sims
@@ -163,6 +176,7 @@ realized with the provided data.
 
 The uneven timesteps can also propagate differently:
 
+```
 ################################################################################
 Simulation 4:
 timestamps: |0   8    20   28   40   48
@@ -180,11 +194,13 @@ timesteps:                                                       |   8    12
 max_time_sim: 120
 unique_dt_sim: [8, 12]
 ################################################################################
+```
 
 These input files can be used without problems.
 
 ### Problem case 4: Uneven timesteps with breaking alterations
 
+```
 ################################################################################
 Simulation 5:
 timestamps: |0   8    20   28   40   48
@@ -198,6 +214,7 @@ timesteps:                      |  12   12   12   8    8    8
 max_time_sim: 120
 unique_dt_sim: [8, 12]
 ################################################################################
+```
 
 These input files can not be used to yield a concatenated trajectory with dt = 20 ps.
 The timestamps 60 and 80 are missing. There are simply no atomic coordinates
@@ -207,6 +224,7 @@ at the respective timestamps available in the files.
 
 Another breaking problem is, when timestamps between trajectories are missing.
 
+```
 ################################################################################
 Simulation 6:
 timestamps: |0   10   20   30   40   50
@@ -220,6 +238,7 @@ timesteps:                                        |     10
 max_time_sim: 120
 unique_dt_sim: 10
 ################################################################################
+```
 
 It goes without saying, that these input files can not be used.
 
@@ -227,6 +246,7 @@ It goes without saying, that these input files can not be used.
 
 There is also the possibility, that the input files contain redundant files.
 
+```
 ################################################################################
 Simulation 7:
 timestamps: |0   10   20   30   40   50   60   70   80   90
@@ -244,6 +264,7 @@ timesteps:                                                     |   10     10
 max_time_sim: 120
 unique_dt_sim: 10
 ################################################################################
+```
 
 In such cases, the file2.xtc can safely be discarded.
 
@@ -252,6 +273,7 @@ In such cases, the file2.xtc can safely be discarded.
 Some xtc files written by gromacs contain only a single timestamp. Thus, they can
 only be used in edge cases.
 
+```
 ################################################################################
 Simulation 8:
 timestamps: |0   10   20   30   40   50   60   70   80
@@ -269,6 +291,7 @@ timesteps:                                                     |   10     10
 max_time_sim: 120
 unique_dt_sim: 10
 ################################################################################
+```
 
 With dt = 20 ps, the file2.xtc can be discarded, with dt = 10 ps, it can not be
 discarded. In this case he commands for these files are:
@@ -377,5 +400,3 @@ if __name__ == "__main__":
 
     # stop coverage
     cov.stop()
-
-

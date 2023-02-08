@@ -42,36 +42,9 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           if [ -f tests/requirements.txt ] ; then pip install -r tests/requirements.txt ; fi
 
-      - name: Create docs/build
-        run: mkdir -p docs/build
-
       - name: Run Unittests 🧪 and Coverage 🐍
         run: |
           pytest
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
-
-      - name: Run pdoc
-        run: |
-          pdoc --html --output-dir docs/build cleanup_sims --force
-          mv docs/build/cleanup_sims/cleanup_sims.html docs/build/index.html
-
-      - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4.4.1
-        with:
-          branch: gh-pages # The branch the action should deploy to.
-          folder: docs/build/ # The folder the action should deploy.
-
-
-      - name: Tag with latest 🏷️
-        uses: EndBug/latest-tag@latest
-        with:
-          # If a description is provided, the action will use it to create an annotated tag. If none is given, the action will create a lightweight tag.
-          # Optional
-          description: This is the latest version of kevinsawade/cleanup_sims
-
-      - name: Publish a Python distribution to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
