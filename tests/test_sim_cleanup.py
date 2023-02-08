@@ -277,42 +277,103 @@ discarded. In this case he commands for these files are:
     gmx trjconv -f file3.xtc -dt 10 -b 100 -e 120
 
 """
-import unittest
+import shutil
+import pytest
 import coverage
 from pathlib import Path
-import HtmlTestRunner
 import datetime
+import hypothesis
+from time import sleep
+import mdtraj as md
+from cleanup_sims.cleanup_sims import cleanup_sims
+from cleanup_sims.cleanup_sims import update_gmx_environ
+from requests import get
+ip = get('https://api.ipify.org').content.decode('utf8')
+if ip.startswith("134.34"):
+    update_gmx_environ("2022.3")
 
-class TestSimCleanup(unittest.TestCase):
-    pass
+
+class TestSimCleanup:
+    input_dir = Path(__file__).resolve().parent / "data/input_sims"
+    input_tpr_file = Path(__file__).resolve().parent / "data/asp5.tpr"
+    input_xtc_file = Path(__file__).resolve().parent / "data/asp5.xtc"
+    output_dir = Path(__file__).resolve().parent / "data/output_sims"
+    log_file = Path(__file__).resolve().parent / "sim_cleanup.log"
+
+    @classmethod
+    def teardown_class(cls):
+        shutil.rmtree(cls.input_dir)
+        shutil.rmtree(cls.output_dir)
+                shutil.rmtree(path_object)
+
+    def setup_method(self) -> None:
+        # create the input directory
+        self.input_dir.mkdir(parents=True, exist_ok=True)
+
+    def test_simulation_all_good(self):
+        # name the file traj_comp.xtc and topol.tpr
+        input_dir = self.input_dir / "nested/directory/structure"
+        input_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(self.input_tpr_file, input_dir / "topol.tpr")
+        shutil.copyfile(self.input_xtc_file, input_dir / "traj_comp.xtc")
+        input_dir_ = str(self.input_dir) + "/nested/./directory/structure"
+        cleanup_sims(directories=[input_dir_],
+                     out_dir=self.output_dir,
+                     dt=20,
+                     max_time=140,
+                     center=True,
+                     create_pdb=True,
+                     file_exists_policy="overwrite",
+                     )
+
+        out_file = self.output_dir / "directory/structure/traj_nojump.xtc"
+        pdb_file = self.output_dir / "directory/structure/start.pdb"
+        assert self.output_dir.is_dir()
+        assert out_file.is_file()
+        assert pdb_file.is_file()
+        test_file = md.load(str(out_file), top=str(pdb_file))
+        assert len(test_file) == 8, print(out_file, pdb_file, test_file)
+
+
+    def test_assert_true(self):
+        assert False
+
+    def test_get_lsb(self):
+        from cleanup_sims.cleanup_sims import get_lsb
+        out = get_lsb()
+        assert isinstance(out, str)
+
 
 if __name__ == "__main__":
     # start coverage
     this_dir = Path(__file__).resolve().parent
-    config_file = str(Path(__file__).resolve.parent.parent / "pyproject.toml")
+    config_file = str(Path(__file__).resolve().parent.parent / "pyproject.toml")
     cov = coverage.Coverage(config_file=config_file)
     cov.start()
 
-    # find the tests
-    loader = unittest.TestLoader()
-    suite = loader.discover(
-        start_dir=str(this_dir),
-        top_level_dir=str(this_dir.parent),
-    )
+    # run pytest
+    pytest.main()
 
-    # create an html test runner
-    now = datetime.now().astimezone().replace(microsecond=0).isoformat()
-    runner = HtmlTestRunner.HTMLTestRunner(
-        output=str(this_dir.parent / "docs/build/static"),
-        report_title=f"EncoderMap Unittest Report from {now}",
-        report_name="html_test_runner_report",
-        combine_reports=True,
-        add_timestamp=False,
-        buffer=True,
-    )
+    # # find the tests
+    # loader = unittest.TestLoader()
+    # suite = loader.discover(
+    #     start_dir=str(this_dir),
+    #     top_level_dir=str(this_dir.parent),
+    # )
+    #
+    # # create an html test runner
+    # now = datetime.now().astimezone().replace(microsecond=0).isoformat()
+    # runner = HtmlTestRunner.HTMLTestRunner(
+    #     output=str(this_dir.parent / "docs/build/static"),
+    #     report_title=f"EncoderMap Unittest Report from {now}",
+    #     report_name="html_test_runner_report",
+    #     combine_reports=True,
+    #     add_timestamp=False,
+    #     buffer=True,
+    # )
 
     # run the tests
-    result = runner.run(suite)
+    # result = runner.run(suite)
 
     # stop coverage
     cov.stop()

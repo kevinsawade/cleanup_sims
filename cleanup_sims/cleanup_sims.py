@@ -35,10 +35,6 @@ import logging
 import numpy as np
 from pathlib import Path
 from MDAnalysis.lib.formats.libmdaxdr import XTCFile
-from copy import deepcopy
-from subprocess import Popen, PIPE
-from subprocess import run as sub_run
-from shlex import split
 import argparse
 import math
 import re
@@ -91,6 +87,15 @@ FileExistsPolicyType = Literal[
     "check_and_continue",
     "check_and_overwrite",
 ]
+
+
+################################################################################
+# Globals
+################################################################################
+
+
+__all__ = ["cleanup_sims"]
+_dryrun = True
 
 
 ################################################################################
@@ -280,14 +285,20 @@ def map_in_and_out_files(
             )
             out_dir_ = Path(directory).parent
         else:
-            mapped_sims["trjcat"] = False
+            mapped_sims[Path(directory)]["trjcat"] = False
+            out_dir_ = Path(out_dir)
         mapped_sims[Path(directory)] = {}
         mapped_sims[Path(directory)]["trjcat"] = out_file
         files = Path(directory).glob(x.replace(".xtc", "*.xtc"))
         p = re.compile(x.rstrip(".xtc") + r"(.xtc|.part\d{4}.xtc)")
         files = filter(lambda x: p.search(str(x)) is not None, files)
         files = list(parts_and_copies_generator(files))
-        for file in files:
+
+        # if only one sim, put that into output. No cat
+        if len(files) == 1:
+            mapped_sims[Path(directory)]["trjcat"] = False
+            out_dir_ = Path(out_dir)
+            file = files[0]
             if "/./" in str(directory):
                 out_file = Path(out_dir_) / directory.split("/./")[1]
                 out_file /= file.name.replace(base_filename, base_filename + f"_{pbc}")
@@ -295,7 +306,20 @@ def map_in_and_out_files(
                 out_file = Path(out_dir_) / file.name.replace(
                     base_filename, base_filename + f"_{pbc}"
                 )
+            out_file = Path(str(out_file).replace("_comp", ""))
             mapped_sims[Path(directory)][file] = out_file
+
+        # put the tmp sims into input, then cat
+        else:
+            for file in files:
+                if "/./" in str(directory):
+                    out_file = Path(out_dir_) / directory.split("/./")[1]
+                    out_file /= file.name.replace(base_filename, base_filename + f"_{pbc}")
+                else:
+                    out_file = Path(out_dir_) / file.name.replace(
+                        base_filename, base_filename + f"_{pbc}"
+                    )
+                mapped_sims[Path(directory)][file] = out_file
     return mapped_sims
 
 
@@ -508,13 +532,16 @@ def feasibility_check(
         if max_time == -1:
             max_time = np.max(input_times)
         n_timesteps = math.ceil(max_time / dt) + 1
-        n_timesteps_in_files = (np.unique(input_times) % dt == 0).sum()
+        check_timestamps = input_times[input_times <= max_time]
+        n_timesteps_in_files = (np.unique(check_timestamps) % dt == 0).sum()
         if n_timesteps != n_timesteps_in_files:
             logger.warning(
                 f"The simulation at {Path(input_files[0]).parent} can't "
                 f"be used with a {dt=}, because the number of timesteps "
                 f"with a max_time of {max_time=} needs to be {n_timesteps=}, "
-                f"but the files allow for {n_timesteps_in_files=}."
+                f"but the files allow for {n_timesteps_in_files=}. These timesteps "
+                f"are the result of these timestapms:\n\n{check_timestamps}\n\n"
+                f"{(np.unique(input_times) % dt == 0)=}"
             )
             return False
 
@@ -751,7 +778,10 @@ def save_metadata(
     file_hashes = metadata["file_hashes"]
     file_hashes = np.array([[str(file), file_hash] for file, file_hash in file_hashes])
     metadata["file_hashes"] = file_hashes
-    np.savez(metadata_file, **metadata)
+    try:
+        np.savez(metadata_file, **metadata)
+    except Exception as e:
+        raise Exception(f"Could not create metadata.npz at {metadata_file}") from e
 
 
 def load_metadata(metadata_file: Path) -> dict[Union[Path, str], np.ndarray]:
@@ -823,10 +853,11 @@ async def write_and_check_times(
                 file_hashes.append(
                     [inp_file, imohash.hashfile(inp_file, hexdigest=True)]
                 )
-            if out_file.is_file():
-                file_hashes.append(
-                    [out_file, imohash.hashfile(out_file, hexdigest=True)]
-                )
+            if out_file:
+                if out_file.is_file():
+                    file_hashes.append(
+                        [out_file, imohash.hashfile(out_file, hexdigest=True)]
+                    )
         file_hashes = np.array(file_hashes)
 
         # assert hat all file hashes are in keys
@@ -1104,7 +1135,7 @@ async def create_ndx_file(
     cmd = f"gmx make_ndx -f {tpr_file} -o {ndx_file}"
     ndx_add_group_stdin += "\nq\n"
     ndx_add_group_stdin = ndx_add_group_stdin.encode()
-    if not dryrun:
+    if not _dryrun:
         proc = await asyncio.subprocess.create_subprocess_shell(
             cmd=cmd,
             stdout=asyncio.subprocess.PIPE,
@@ -1142,6 +1173,7 @@ async def run_command_and_check(
     command: dict,
     logger: Optional[logging.Logger] = None,
 ) -> None:
+    stdout = ""
     cmd = command["cmd"]
     stdin = command["stdin"].encode()
     out_file = command["out_file"]
@@ -1152,12 +1184,21 @@ async def run_command_and_check(
     # at this point we can be certain, that the out file is a bad file
     if out_file.is_file():
         logger.info(f"Deleting the trjcat file {out_file}.")
-    if not dryrun:
+    if not _dryrun:
         out_file.unlink(missing_ok=True)
     else:
         logger.warning(f"DRY-RUN: Deleting {out_file}.")
+
+    # making directories
+    if not out_file.parent.is_dir():
+        if not _dryrun:
+            out_file.parent.mkdir(parents=True)
+        else:
+            logger.warning(f"DRY-RUN: Creating directory: {out_file.parent}.")
+
     logger.debug(f"Running command {cmd}.")
-    if not dryrun:
+    if not _dryrun:
+        print(cmd)
         proc = await asyncio.subprocess.create_subprocess_shell(
             cmd=cmd,
             stdout=asyncio.subprocess.PIPE,
@@ -1167,8 +1208,8 @@ async def run_command_and_check(
         stdout, stderr = await proc.communicate(stdin)
         if not out_file.is_file():
             print(proc.returncode)
-            print(stderr)
-            print(stdout)
+            print(stderr.decode())
+            print(stdout.decode())
             print(cmd)
             raise Exception(f"Could not create file {out_file}")
         else:
@@ -1194,7 +1235,7 @@ async def run_command_and_check(
         logger.info(
             f"The creation of the file {out_file} succeeded. All parameters are ok."
         )
-        return
+        return stdout.decode()
 
     random_hash = "".join(
         random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits)
@@ -1266,6 +1307,8 @@ async def run_command_and_check(
         f"does this."
     )
 
+    return stdout
+
 
 async def mdanalysis_fallback(
     input_file: Path,
@@ -1336,7 +1379,7 @@ async def mdanalysis_fallback(
     )
     tmp_tpr = Path(f"/tmp/{random_hash}.tpr")
     cmd = f"gmx convert-tpr -s {tpr_file} -o {tmp_tpr} -n {ndx_file}"
-    if not dryrun:
+    if not _dryrun:
         proc = await asyncio.subprocess.create_subprocess_shell(
             cmd=cmd,
             stdout=asyncio.subprocess.PIPE,
@@ -1373,7 +1416,7 @@ async def mdanalysis_fallback(
     timestamps = np.arange(b, ee + 1, dt)
 
     # write the timesteps
-    if not dryrun:
+    if not _dryrun:
         with mda.Writer(str(output_file), ag.n_atoms) as w:
             for ts in u.trajectory:
                 if ts.time in timestamps:
@@ -1386,7 +1429,7 @@ async def run_async_commands(
     commands: list[dict],
     logger: Optional[logging.Logger] = None,
 ) -> None:
-    await asyncio.gather(*[run_command_and_check(c, logger) for c in commands])
+    return await asyncio.gather(*[run_command_and_check(c, logger) for c in commands])
 
 
 async def prepare_sim_cleanup(
@@ -1451,12 +1494,12 @@ async def run_concat_command(
     # at this point we can be certain, that the out file is a bad file
     if out_file.is_file():
         logger.info(f"Deleting the trjcat file {out_file}.")
-    if not dryrun:
+    if not _dryrun:
         out_file.unlink(missing_ok=True)
     else:
         logger.warning(f"DRY-RUN: Deleted {out_file}")
     logger.debug(f"Running command {cmd}.")
-    if not dryrun:
+    if not _dryrun:
         proc = await asyncio.subprocess.create_subprocess_shell(
             cmd=cmd,
             stdout=asyncio.subprocess.PIPE,
@@ -1591,12 +1634,12 @@ async def async_create_pdb(pdb_cmd: dict[str, Union[str, Path, int]],
             return
 
     if overwrite:
-        if not dryrun:
+        if not _dryrun:
             pdb_out_file.unlink(missing_ok=True)
         else:
             logger.warning(f"DRY-RUN: Deleted {pdb_out_file}")
 
-    if not dryrun:
+    if not _dryrun:
         proc = await asyncio.subprocess.create_subprocess_shell(
             cmd=pdb_cmd["cmd"],
             stdout=asyncio.subprocess.PIPE,
@@ -1836,7 +1879,8 @@ def cleanup_sims(
     logger = _get_logger(logfile, singular=True, loglevel=loglevel)
 
     # set global dryrun
-    global dryrun
+    global _dryrun
+    _dryrun = dry_run
 
     # set the terminator
     logging.StreamHandler.terminator = "\n"
@@ -1879,15 +1923,21 @@ def cleanup_sims(
     if create_pdb:
         pdb_commands = []
         for sim_dir, simulation in simulations.items():
-            for inp_file, out_file in simulation.items():
-                # this is agnostic to whether trjcat is True or False
-                # important is only, whether the directories are the same
-                if inp_file == "trjcat":
-                    tpr_file = sim_dir / s
-                    break
-                if inp_file.parent != out_file.parent:
-                    tpr_file = inp_file.parent / s
-                    break
+            if len(simulation) == 2:
+                for inp_file, out_file in simulation.items():
+                    if inp_file != "trjcat":
+                        tpr_file = inp_file.parent / s
+                        break
+            else:
+                for inp_file, out_file in simulation.items():
+                    # this is agnostic to whether trjcat is True or False
+                    # important is only, whether the directories are the same
+                    if inp_file == "trjcat":
+                        tpr_file = sim_dir / s
+                        break
+                    if inp_file.parent != out_file.parent:
+                        tpr_file = inp_file.parent / s
+                        break
 
             if deffnm is not None and s == "topol.tpr":
                 s = deffnm + ".tpr"
@@ -1963,7 +2013,7 @@ def cleanup_sims(
                 concat_commands.append(command)
             else:
                 command = {
-                    "cmd": f"gmx trjconv -s {tpr_file} -n {ndx_file} -f {inp_file} -o {command['out_file']} "
+                    "cmd": f"gmx trjconv -s {tpr_file} -f {inp_file} -o {command['out_file']} "
                     f"-{center} -b {command['b']} -e {command['e']} -dt {command['dt']}",
                     "b": command["b"],
                     "e": command["e"],
@@ -1973,21 +2023,40 @@ def cleanup_sims(
                     "n_atoms": n_atoms,
                     "inp_file": inp_file,
                     "s": tpr_file,
-                    "n": ndx_file,
                 }
                 if pbc is not None:
                     command["cmd"] += f" -pbc {pbc}"
+                if create_ndx:
+                    command["cmd"] += f" -n {ndx_file}"
+                    command["n"] = ndx_file
                 async_commands.append(command)
+
+    # set the event loop for the gathers
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 
     # run the commands asynchronously
     if async_commands:
-        asyncio.run(run_async_commands(async_commands, logger))
+        result = loop.run_until_complete(
+            run_async_commands(
+                async_commands, logger,
+            )
+        )
+        print(result)
 
     if concat_commands:
-        asyncio.run(async_run_concat_commands(concat_commands, logger=logger))
+        loop.run_until_complete(
+            async_run_concat_commands(
+                concat_commands, logger=logger,
+            )
+        )
 
     if create_pdb:
-        asyncio.run(async_run_create_pdb(pdb_commands, n_atoms, file_exists_policy, logger=logger))
+        loop.run_until_complete(
+            async_run_create_pdb(
+                pdb_commands, n_atoms, file_exists_policy, logger=logger,
+            )
+        )
 
     if clean_copies:
         pass

@@ -1,0 +1,10 @@
+pytest
+coverage
+pytest-cov
+hypothesis
+mdtraj
+vulture
+flake8
+black
+isort
+pdoc3
