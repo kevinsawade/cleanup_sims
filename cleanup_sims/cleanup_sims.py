@@ -47,6 +47,7 @@ from __future__ import annotations
 import logging
 import numpy as np
 from pathlib import Path
+from pprint import pprint
 from MDAnalysis.lib.formats.libmdaxdr import XTCFile
 import argparse
 import asyncio
@@ -60,9 +61,7 @@ import shutil
 import string
 import struct
 import subprocess
-import sys
-import termios
-from io import StringIO
+from aiodecorators import Semaphore
 from pathlib import Path
 from typing import Callable, Generator, List, Literal, Optional, Union
 
@@ -267,12 +266,13 @@ def _get_start_end_in_dt(
 
 
 def map_in_and_out_files(
-    directories: Union[List[str]],
+    directories: Union[List[str]. List[List[str]]],
     out_dir: Union[str, Path],
     x: str = "traj_comp.xtc",
     pbc: str = "nojump",
     deffnm: Optional[str] = None,
     trjcat: bool = True,
+    combine: bool = False
 ) -> dict[Path, dict[Path, Path]]:
     """Maps in and out files."""
     mapped_sims = {}
@@ -283,9 +283,23 @@ def map_in_and_out_files(
         x = deffnm + ".xtc"
     base_filename = x.split(".")[0]
 
-    # fill the dict
     for directory in directories:
-        mapped_sims[Path(directory)] = {}
+        if isinstance(directory, list):
+            mapped_sims |= map_in_and_out_files(directory, out_dir, x, pbc, deffnm, trjcat, combine=True)
+            continue
+
+        # the key dir is Path(directory) when files should not be combined
+        # else it is the first dir in directories
+        if combine:
+            key_dir = Path(directories[0])
+        else:
+            key_dir = Path(directory)
+
+        # create the key if it not exists, if we combine, we don't overwrite here
+        if not combine or key_dir not in mapped_sims:
+            mapped_sims[key_dir] = {}
+
+        # if trjcat the temporary output files will be in the parent dir
         if trjcat:
             # if trjcat put the "temporary files" into the parent dir.
             if "_comp" in base_filename:
@@ -298,20 +312,21 @@ def map_in_and_out_files(
                 / f"{cat_base_filename}_{pbc}.xtc"
             )
             out_dir_ = Path(directory).parent
-            mapped_sims[Path(directory)]["trjcat"] = out_file
+            mapped_sims[key_dir]["trjcat"] = out_file
         else:
-            mapped_sims[Path(directory)]["trjcat"] = False
+            mapped_sims[key_dir]["trjcat"] = False
             out_dir_ = Path(out_dir)
-        mapped_sims[Path(directory)] = {}
-        mapped_sims[Path(directory)]["trjcat"] = out_file
-        files = Path(directory).glob(x.replace(".xtc", "*.xtc"))
+        if not combine:
+            mapped_sims[key_dir] = {}
+        mapped_sims[key_dir]["trjcat"] = out_file
+        files = list(Path(directory).glob(x.replace(".xtc", "*.xtc")))
         p = re.compile(x.rstrip(".xtc") + r"(.xtc|.part\d{4}.xtc)")
         files = filter(lambda x: p.search(str(x)) is not None, files)
         files = list(parts_and_copies_generator(files))
 
         # if only one sim, put that into output. No cat
         if len(files) == 1:
-            mapped_sims[Path(directory)]["trjcat"] = False
+            mapped_sims[Pkey_dir]["trjcat"] = False
             out_dir_ = Path(out_dir)
             file = files[0]
             if "/./" in str(directory):
@@ -334,7 +349,7 @@ def map_in_and_out_files(
                     out_file = Path(out_dir_) / file.name.replace(
                         base_filename, base_filename + f"_{pbc}"
                     )
-                mapped_sims[Path(directory)][file] = out_file
+                mapped_sims[key_dir][file] = out_file
     return mapped_sims
 
 
@@ -372,9 +387,30 @@ def _get_logger(
     return logger
 
 
-async def get_times_from_file(file: Path) -> np.ndarray:
+@Semaphore(10)
+async def _get_times_from_file(
+    file: Path,
+    logger: Optional[logging.Logger] = None,
+) -> np.ndarray:
+    logger.info(f"The file {file} exists. Getting its times.")
     with XTC(file) as f:
         times = np.vstack([d for d in f])
+    return times
+
+
+async def get_times_from_file(
+    file: Path,
+    timeout: int = 600,
+    logger: Optional[logging.Logger] = None,
+) -> np.ndarray:
+    assert file.exists()
+    try:
+        times = await asyncio.wait_for(_get_times_from_file(file, logger=logger), timeout=timeout)
+    except TimeoutError as e:
+        raise Exception(
+            f"Could not read times from {file=}, within the timeout={timeout} s."
+            f"{file.resolve()=}, {file.exists()=}"
+        ) from e
     return times
 
 
@@ -555,16 +591,15 @@ def feasibility_check(
                 f"be used with a {dt=}, because the number of timesteps "
                 f"with a max_time of {max_time=} needs to be {n_timesteps=}, "
                 f"but the files allow for {n_timesteps_in_files=}. These timesteps "
-                f"are the result of these timestapms:\n\n{check_timestamps}\n\n"
+                f"are the result of these timestamps:\n\n{check_timestamps}\n\n"
                 f"{(np.unique(input_times) % dt == 0)=}"
             )
             return False
 
     logger.info(
-        f"The files in {input_files[0].parent} ({[f.name for f in input_files]})"
+        f"The files in {input_files[0].parent} ({[f.name for f in input_files]}) "
         f"can be used with a {max_time=} and a {dt=}."
     )
-
     return True
 
 
@@ -609,7 +644,8 @@ def get_start_end_in_dt(
             if len(times) == 1:
                 logger.debug(
                     f"The file {file} is a single-timestep file. It is "
-                    f"safe to discard such files in the algorithm."
+                    f"safe to discard such files in the algorithm. Because this "
+                    f"timestep will be in another file."
                 )
                 out.pop(file)
                 continue
@@ -638,21 +674,36 @@ def get_start_end_in_dt(
                 start_dt = previous_end_dt + dt
             else:
                 logger.debug(f"Comparing the files {previous_file=} and {file=}")
-                if start_dt - previous_end_dt != dt:
+                if (diff := start_dt - previous_end_dt) > dt:
                     msg = (
                         f"Can't concatenate using the files {previous_file=} and {file=}. "
                         f"The time-step between these two files is {start=}-{previous_end=}="
                         f"{(start - previous_end)} ps, which does not correspond to the"
-                        f"requested {dt=}. The last times of the previous file: "
-                        f"{previous_times[-5:]=} and the first times in file: "
-                        f"{times[:5]}. This is a reason to stop the algorithm here."
+                        f"requested {dt=}. The difference is {diff=}. "
+                        f"The last times of the previous file: "
+                        f"\n{previous_times[-50:]=}\nand the first times in file: "
+                        f"\n{times[:50]=}\n. This is a reason to stop the algorithm here."
                     )
                     raise Exception(msg)
+                elif (diff := start_dt - previous_end_dt) == 0:
+                    start_dt = previous_end_dt + 100
+                    logger.info(
+                        f"The difference between {previous_file=} and {file=} is "
+                        f"negative {start=}-{previous_end=}="
+                        f"{(start - previous_end)} ps. And the diff in dt is zero:"
+                        f"{diff=}. This means, I need to skip some "
+                        f"frames at the start of {file=}. The previous file ends "
+                        f"with a timestamp of {previous_times[-1]=}, which in dt is "
+                        f"{previous_end_dt=}. The new file starts at a time "
+                        f"{times[0]}, but due to the difference being negative, I "
+                        f"will let it start at {start_dt=}."
+                    )
                 else:
-                    logger.debug(
+                    msg = (
                         f"Can concatenate the files {previous_file=} and "
                         f"{file=} with the requested {dt=}."
                     )
+                    logger.debug(msg)
 
         # make sure the times are obtainable in the file
         should_be_times = np.arange(start_dt, end_dt + 1, dt)
@@ -846,18 +897,18 @@ async def write_and_check_times(
 
         # frames and times of input files
         logger.debug(f"Adding source files for {sim_dir}.")
-        times = await asyncio.gather(*[get_times_from_file(s) for s in input_files])
+        times = await asyncio.gather(*[get_times_from_file(s, logger=logger) for s in input_files])
         times = {k: v for k, v in zip(input_files, times)}
 
-        # frames and times of maybe exisiting output files
+        # frames and times of maybe existing output files
         logger.debug(f"Adding destination files dor {sim_dir} if available.")
-        _ = await asyncio.gather(*[get_times_from_file(s) for s in output_files])
+        _ = await asyncio.gather(*[get_times_from_file(s, logger=logger) for s in output_files])
         times |= {k: v for k, v in zip(output_files, _)}
 
         # frames and times of the trjcat file
         if all_out_file:
             logger.debug(f"Adding the tjcat file: {all_out_file}.")
-            _ = await get_times_from_file(all_out_file)
+            _ = await get_times_from_file(all_out_file, logger=logger)
             times |= {all_out_file: _}
 
         assert len(times) == len(input_files) + len(output_files) + (
@@ -1165,13 +1216,12 @@ async def create_ndx_file(
         )
         stdout, stderr = await proc.communicate(ndx_add_group_stdin)
         if not ndx_file.is_file():
-            print(proc.returncode)
-            print(stderr.decode())
-            print(stdout.decode())
-            print(cmd)
-            raise Exception(f"Could not create file {ndx_file}")
+            raise Exception(
+                f"Could not create file {ndx_file}. {proc.returncode=}, "
+                f"{stderr.decode()=}, {stdout.decode()=}, {cmd=}"
+            )
         else:
-            print(f"Created {ndx_file}")
+            logger.info(f"Created {ndx_file}")
     else:
         logger.warning(f"DRY-RUN: Created ndx_file {ndx_file}")
 
@@ -1228,18 +1278,21 @@ async def run_command_and_check(
         )
         stdout, stderr = await proc.communicate(stdin)
         if not out_file.is_file():
-            print(proc.returncode)
-            print(stderr.decode())
-            print(stdout.decode())
-            print(cmd)
-            raise Exception(f"Could not create file {out_file}")
+            raise Exception(
+                f"Could not create file {out_file}. {proc.returncode=}, "
+                f"{stderr.decode()=}, {stdout.decode()=}, {cmd=}"
+            )
         else:
-            logger.debug(f"Created {out_file}")
+            logger.debug(f"Created {out_file}.")
     else:
-        logger.warning(f"DRY-RUN: Created {out_file}")
+        logger.warning(f"DRY-RUN: Created {out_file}.")
 
     # run tests on the new file
-    times = (await get_times_from_file(out_file))[:, 1]
+    if not _dryrun:
+        times = (await get_times_from_file(out_file))[:, 1]
+    else:
+        logger.warning(f"DRY-RUN: Setting the times of the nonexistent {out_file}.")
+        times = np.arange(b, e + 1, dt).astype(int)
     timesteps = np.unique(times[1:] - times[:-1])
     start_ok = times[0] == b
     end_ok = times[-1] == e
@@ -1262,7 +1315,10 @@ async def run_command_and_check(
         logger.info(
             f"The creation of the file {out_file} succeeded. All parameters are ok."
         )
-        return stdout.decode()
+        if isinstance(stdout, bytes):
+            return stdout.decode()
+        else:
+            return stdout
 
     random_hash = "".join(
         random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits)
@@ -1415,14 +1471,11 @@ async def mdanalysis_fallback(
         )
         stdout, stderr = await proc.communicate(input=(group + "\n").encode())
         if not tmp_tpr.is_file():
-            print(proc.returncode)
-            print(stderr.decode())
-            print(stdout.decode())
-            print(cmd)
             raise Exception(
                 f"Could not create file {tmp_tpr} which is bad, because "
                 f"gromacs did not produce the correct file, and I am "
-                f"already at the fallback procedure using MDAnalysis."
+                f"already at the fallback procedure using MDAnalysis. "
+                f"{proc.returncode=}, {stderr.decode()=}, {stdout.decode()=}, {cmd=}."
             )
         else:
             logger.debug(f"created {tmp_tpr}")
@@ -1547,22 +1600,30 @@ async def run_concat_command(
         )
         stdout, stderr = await proc.communicate()
         if not out_file.is_file():
-            print(proc.returncode)
-            print(stderr.decode())
-            print(stdout.decode())
-            print(cmd)
-            raise Exception(f"Could not create file {out_file}")
+            raise Exception(
+                f"Could not create file {out_file}. {proc.returncode=}, "
+                f"{stderr.decode()=}, {stdout.decode()=}, {cmd=}"
+            )
         else:
             logger.debug(f"Created {out_file}")
     else:
         logger.warning(f"DRY-RUN: Created {out_file}")
 
     # run tests on the new file
-    times = (await get_times_from_file(out_file))[:, 1]
-    timesteps = np.unique(times[1:] - times[:-1])
-    start_ok = times[0] == b
-    end_ok = times[-1] == e or e == -1
-    timestep_ok = np.unique(times[1:] - times[:-1])
+    if not _dryrun:
+        times = (await get_times_from_file(out_file))[:, 1]
+    else:
+        times = np.arange(b, e + 1, dt).astype(int)
+    if not _dryrun:
+        timesteps = np.unique(times[1:] - times[:-1])
+        start_ok = times[0] == b
+        end_ok = times[-1] == e or e == -1
+        timestep_ok = np.unique(times[1:] - times[:-1])
+    else:
+        timesteps = np.array([dt])
+        start_ok = True
+        end_ok = True
+        timestep_ok = np.array([dt])
     if len(timestep_ok) == 1:
         timestep_ok = timestep_ok[0]
         timestep_ok = timestep_ok == dt
@@ -1654,7 +1715,10 @@ async def async_create_pdb(
         overwrite = True
 
     if check and n_atoms != -1:
-        n_atoms_in_file = mda.Universe(str(pdb_out_file)).atoms.n_atoms
+        if not _dryrun:
+            n_atoms_in_file = mda.Universe(str(pdb_out_file)).atoms.n_atoms
+        else:
+            n_atoms_in_file = n_atoms
         if n_atoms_in_file != n_atoms:
             if not overwrite:
                 raise Exception(
@@ -1693,17 +1757,19 @@ async def async_create_pdb(
         )
         stdout, stderr = await proc.communicate(pdb_cmd["stdin"].encode())
         if not pdb_out_file.is_file():
-            print(proc.returncode)
-            print(stderr.decode())
-            print(stdout.decode())
-            print(pdb_cmd["cmd"])
-            raise Exception(f"Could not create file {pdb_out_file}")
+            raise Exception(
+                f"Could not create file {pdb_out_file}. {proc.returncode=}, "
+                f"{stderr.decode()=}, {stdout.decode()=}, {pdb_cmd['cmd']=}"
+            )
         else:
-            print(f"Created {pdb_out_file}")
+            logger.info(f"Created {pdb_out_file}")
     else:
         logger.warning(f"DRY-RUN: Created {pdb_out_file}")
 
-    n_atoms_in_file = mda.Universe(str(pdb_out_file)).atoms.n_atoms
+    if not _dryrun:
+        n_atoms_in_file = mda.Universe(str(pdb_out_file)).atoms.n_atoms
+    else:
+        n_atoms_in_file = n_atoms
     if n_atoms != -1:
         if n_atoms_in_file != n_atoms:
             raise Exception(
@@ -1717,31 +1783,150 @@ async def async_create_pdb(
             )
 
 
+async def async_run_create_tpr(
+    tpr_commands: list[dict[str, Union[str, Path, int]]],
+    n_atoms: int = -1,
+    file_exists_policy: FileExistsPolicyType = "raise",
+    logger: Optional[logging.Logger] = None,
+) -> None:
+    await asyncio.gather(
+        *[
+            async_create_tpr(tpr_cmd, n_atoms, file_exists_policy, logger=logger)
+            for tpr_cmd in tpr_commands
+        ]
+    )
+
+
+async def async_create_tpr(
+    tpr_cmd: dict[str, Union[str, Path, int]],
+    n_atoms: int = -1,
+    file_exists_policy: FileExistsPolicyType = "raise",
+    logger: Optional[logging.Logger] = None,
+) -> None:
+    tpr_out_file = tpr_cmd["out_file"]
+    check = False
+    if tpr_out_file.is_file():
+        if file_exists_policy == "raise":
+            raise Exception(
+                f"File {tpr_out_file} already exists. "
+                f"Due to the chosen `{file_exists_policy=}` "
+                "I have raised an Exception."
+            )
+        elif file_exists_policy == "overwrite":
+            logger.debug(f"Will overwrite {tpr_out_file} without checking.")
+            overwrite = True
+        elif file_exists_policy == "continue":
+            logger.debug(f"File {tpr_out_file} already exists. Continuing")
+            return
+        elif file_exists_policy == "check_and_overwrite":
+            logger.debug(f"Will overwrite {tpr_out_file} when checks fail.")
+            overwrite = True
+            check = True
+        elif file_exists_policy == "check_and_continue":
+            logger.debug(f"Will check {tpr_out_file} and raise, when checks fail.")
+            overwrite = False
+            check = True
+        else:
+            raise Exception(f"Unkown file_exists_policy: {file_exists_policy=}")
+    else:
+        overwrite = True
+
+    if check and n_atoms != -1:
+        if not _dryrun:
+            n_atoms_in_file = mda.Universe(str(tpr_out_file)).atoms.n_atoms
+        else:
+            n_atoms_in_file = n_atoms
+        if n_atoms_in_file != n_atoms:
+            if not overwrite:
+                raise Exception(
+                    f"{tpr_out_file} has the wrong number of atoms. "
+                    f"{n_atoms} was requested, but the file contains "
+                    f"{n_atoms_in_file} atoms. "
+                    f"Set `file_exists_policy` to 'overwrite' or "
+                    f"'check_and_overwrite' to overwrite this file."
+                )
+            else:
+                logger.debug(
+                    f"{tpr_out_file} indexes the wrong number of atoms. "
+                    f"{n_atoms} was requested, but the file contains "
+                    f"{n_atoms_in_file} atoms. "
+                    f"I will overwrite this file."
+                )
+        else:
+            logger.debug(
+                f"{tpr_out_file} is fine. It has the correct "
+                f"number of atoms: {n_atoms}."
+            )
+            return
+
+    if overwrite:
+        if not _dryrun:
+            tpr_out_file.unlink(missing_ok=True)
+        else:
+            logger.warning(f"DRY-RUN: Deleted {tpr_out_file}")
+
+    if not _dryrun:
+        proc = await asyncio.subprocess.create_subprocess_shell(
+            cmd=tpr_cmd["cmd"],
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            stdin=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate(tpr_cmd["stdin"].encode())
+        if not tpr_out_file.is_file():
+            raise Exception(
+                f"Could not create file {tpr_out_file}. {proc.returncode=}, "
+                f"{stderr.decode()=}, {stdout.decode()=}, {pdb_cmd['cmd']=}"
+            )
+        else:
+            logger.info(f"Created {tpr_out_file}")
+    else:
+        logger.warning(f"DRY-RUN: Created {tpr_out_file}")
+
+    if not _dryrun:
+        n_atoms_in_file = mda.Universe(str(tpr_out_file)).atoms.n_atoms
+    else:
+        n_atoms_in_file = n_atoms
+    if n_atoms != -1:
+        if n_atoms_in_file != n_atoms:
+            raise Exception(
+                f"{tpr_out_file} has the wrong number of atoms. "
+                f"{tpr_out_file} was requested, but the file contains "
+                f"{n_atoms_in_file}. "
+                f"You can try and provide a different `output_group_and_center` "
+                f"(-ndx-group for the CLI)."
+                f"Try to find the correct stdin by calling the command: "
+                f"{tpr_cmd['cmd']} manually."
+            )
+
+
 ################################################################################
 # Main functions
 ################################################################################
 
 
 def cleanup_sims(
-    directories: List[str],
+    directories: Union[List[str], List[List[str]]],
     out_dir: Union[str, Path],
     dt: int = -1,
     max_time: int = -1,
     n_atoms: int = -1,
     s: str = "topol.tpr",
     x: str = "traj_comp.xtc",
-    pbc: Union[str, None] = "nojump",
+    pbc: Literal["none", "mol", "res", "atom", "nojump", "cluster", "whole"] = "none",
+    ur: Literal["rect", "tric", "compact"] = "rect",
     center: bool = False,
     output_group_and_center: Union[str, int] = 1,
     deffnm: Optional[str] = None,
     trjcat: bool = True,
     create_pdb: bool = True,
+    create_tpr: bool = True,
     create_ndx: bool = False,
     ndx_add_group_stdin: Optional[str] = None,
     per_file_timestep_policy: PerFileTimestepPolicyType = "raise",
     inter_file_timestep_policy: InterFileTimestepPolicyType = "raise",
     file_exists_policy: FileExistsPolicyType = "raise",
-    clean_copies: bool = False,
+    clean_copies: bool = True,
     dry_run: bool = False,
     logfile: Optional[Path] = Path("sim_cleanup.log"),
     loglevel: int = logging.INFO,
@@ -1831,12 +2016,13 @@ def cleanup_sims(
             If -deffnm or -x are set, the filenames of these will be used, so
             that in theory my_traj_file_nojump.xtc and
             my_traj_file_nojump.part0001.xtc are possible.
+        ur (str): The unit cell representation. Refer to the gromacs manual for
+            this setting. Defaults to "rect".
         center (bool): Similar to gromacs trjconv's -[no]center option. If center
             is provided the -ndx-group will be used both for centering and pbc
             removal. If you want different groups for centering and output,
-            use the python function (e.g. by writing a short py
-            Use the python function and provide a string with newline chara\
-                cter (\\n) to use different groups for pbc and center.
+            use the python function and provide a string with newline character
+            (\\n) to use different groups for pbc and center.
         output_group_and_center (str): The string to provide for gmx trjconv to
             center and remove pbcs from. Can either be an integer (0 is most of
             the times the system, 1 is most of the times the protein) or a string
@@ -1858,11 +2044,16 @@ def cleanup_sims(
         create_pdb (bool): When given, the output directories will also contain
             start.pdb files that are extracted from the first frame of the
             simulations. These can be used to load the clean trajectries into
-            other tools.
+            other tools. Defaults to True.
+        create_tpr (bool): When given, the output directories will also contain
+            topol.tpr files that are extracted from the simulation's tpr files.
+            These contain bonds and interaction parameters and can be used to
+            load the bonds of the trajectory, if your program of choice does
+            not recognize the bonds in the start.pdb. Defaults to True.
         create_ndx (bool): If gromac's doesn't recognize your protein as such
             and the index group 1 (Protein) contains the wrong number of atoms,
             you can create index.ndx files in the input directories with this
-            option. See the -ndx-group-in flag how to do so.
+            option. See the -ndx-group-in flag how to do so. Defaults to False.
         ndx_add_group_stdin (str): If you have non-standard residues in your
             protein and they are not included in group 1 (protein) of the
             standard index, you can add a custom group using this flag. If you
@@ -1965,8 +2156,9 @@ def cleanup_sims(
     simulations = map_in_and_out_files(directories, out_dir, x, pbc, deffnm, trjcat)
 
     # based on this we can already collect the commands to create pdb files
-    if create_pdb:
+    if create_pdb or create_tpr:
         pdb_commands = []
+        tpr_commands = []
         for sim_dir, simulation in simulations.items():
             if len(simulation) == 2:
                 for inp_file, out_file in simulation.items():
@@ -1987,20 +2179,34 @@ def cleanup_sims(
             if deffnm is not None and s == "topol.tpr":
                 s = deffnm + ".tpr"
             pdb_out_file = out_file.parent / "start.pdb"
+            tpr_out_file = out_file.parent / "topol.tpr"
             pdb_cmd = (
-                f"gmx trjconv -f {out_file} -s {tpr_file} -o {pdb_out_file} -dump 0"
+                f"gmx trjconv -f {out_file} -s {tpr_file} -o {pdb_out_file} -dump 0 -ur {ur}"
+            )
+            tpr_cmd = (
+                f"gmx convert-tpr -s {tpr_file} -o {tpr_out_file}"
             )
             if center:
                 pdb_cmd += " -center"
             if create_ndx:
                 pdb_cmd += f" -n {tpr_file.parent / 'index.ndx'}"
+                tpr_cmd += f" -n {tpr_file.parent / 'index.ndx'}"
             pdb_cmd = {
                 "cmd": pdb_cmd,
                 "stdin": output_group_and_center,
                 "out_file": pdb_out_file,
                 "n_atoms": n_atoms,
             }
-            pdb_commands.append(pdb_cmd)
+            tpr_cmd = {
+                "cmd": tpr_cmd,
+                "stdin": output_group_and_center,
+                "out_file": tpr_out_file,
+                "n_atoms": n_atoms,
+            }
+            if create_pdb:
+                pdb_commands.append(pdb_cmd)
+            if create_tpr:
+                tpr_commands.append(tpr_cmd)
 
     assert len(simulations) == len(directories)
     logger.info(f"{len(simulations)} simulations will be cleaned up.")
@@ -2065,7 +2271,7 @@ def cleanup_sims(
             else:
                 command = {
                     "cmd": f"gmx trjconv -s {tpr_file} -f {inp_file} -o {command['out_file']} "
-                    f"-{center} -b {command['b']} -e {command['e']} -dt {command['dt']}",
+                    f"-{center} -b {command['b']} -e {command['e']} -dt {command['dt']} -ur {ur}",
                     "b": command["b"],
                     "e": command["e"],
                     "dt": command["dt"],
@@ -2093,7 +2299,7 @@ def cleanup_sims(
                 async_commands, logger,
             )
         )
-        print(result)
+        # print(result)
 
     if concat_commands:
         loop.run_until_complete(
@@ -2109,14 +2315,30 @@ def cleanup_sims(
             )
         )
 
+    if create_tpr:
+        loop.run_until_complete(
+            async_run_create_tpr(
+                tpr_commands, n_atoms, file_exists_policy, logger=logger,
+            )
+        )
+
     if clean_copies:
-        pass
-        # copy_files = list(list(sims.values())[0].parent.glob("#*"))
-        # logger.debug(
-        #     f"Deleting {len(copy_files)} copy files (filenames like this: {copy_files[0]})"
-        # )
-        # for f in copy_files:
-        #     f.unlink()
+        for sim_plan in plans:
+            if "trjcat" in sim_plan:
+                output_dir = sim_plan["trjcat"]["out_file"].parent
+            else:
+                for inp_file, data in sim_plan.items():
+                    output_dir = data["out_file"].parent
+
+            for file in output_dir.glob("#*#"):
+                if not _dryrun:
+                    pass
+                    # file.unlink()
+                logger.critical(
+                    f"The clean_copies feature has not been tested yet. "
+                    f"I would normally delete the file {file}, but the "
+                    f"feature is not tested."
+                    )
 
     logger.info("All finished. Rejoice.")
 

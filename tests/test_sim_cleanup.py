@@ -39,7 +39,7 @@ that, if the mdrun process gets interrupted and then another process is started,
 program continues to write into the same xtc/trr/edr/log files. However, you might
 also run mdrun with the -noappend option. The first files produced by the prorgram
 are: (traj.part0001.trr, traj_comp.part0001.xtc, ener.part0001.edr). The next files
-are then (traj.part0002.xtc etc.). However, there's a mixed option. Let's call it
+are then (traj.part0002.xtc, etc.). However, there's a mixed option. Let's call it
 append-noappend. This happens, if the first call to mdrun was done with -append, and
 consecutive calls to mdrun are done with -noappend. This will result in files with
 this pattern: traj_comp.xtc, traj_comp.part0002.xtc, traj_comp.part0003.xtc. In the
@@ -71,10 +71,10 @@ unique_dt_sim: 10
 ```
 
 These simulations are also pretty easy to treat. With the trjconv and trjcat
-command, they can be sliced as needed. Let's say the user wants mas_time = 100 ps
-and dt = 20 ps. The file1.xtc will be used as input for trconv and a new file with
+command, they can be sliced as needed. Let's say the user wants max_time = 100 ps
+and dt = 20 ps. The file1.xtc will be used as input for trjconv and a new file with
 the timestamps (0, 20, 40) will be written. From file2.xtc the timestamps (60, 80, 100)
-will be written. File3.xtc can be ignored. After the trjcat simulation 2 looks like this:
+will be written. File3.xtc can be ignored. Before the trjcat simulation 2 looks like this:
 
 ```
 ################################################################################
@@ -216,7 +216,7 @@ unique_dt_sim: [8, 12]
 ################################################################################
 ```
 
-These input files can not be used to yield a concatenated trajectory with dt = 20 ps.
+These input files can **not be used to yield a concatenated trajectory** with dt = 20 ps.
 The timestamps 60 and 80 are missing. There are simply no atomic coordinates
 at the respective timestamps available in the files.
 
@@ -294,24 +294,25 @@ unique_dt_sim: 10
 ```
 
 With dt = 20 ps, the file2.xtc can be discarded, with dt = 10 ps, it can not be
-discarded. In this case he commands for these files are:
+discarded. In this case the commands for these files are:
     gmx trjconv -f file1.xtc -dt 10 -e 80
     gmx trjconv -f file2.xtc -dt 10 -b 90 -e 90
     gmx trjconv -f file3.xtc -dt 10 -b 100 -e 120
 
 """
-import shutil
-import pytest
-import coverage
-from pathlib import Path
 import datetime
-import hypothesis
+import shutil
+from pathlib import Path
 from time import sleep
+
+import coverage
+import hypothesis
 import mdtraj as md
-from cleanup_sims.cleanup_sims import cleanup_sims
-from cleanup_sims.cleanup_sims import update_gmx_environ
+import pytest
+from cleanup_sims.cleanup_sims import cleanup_sims, update_gmx_environ
 from requests import get
-ip = get('https://api.ipify.org').content.decode('utf8')
+
+ip = get("https://api.ipify.org").content.decode("utf8")
 if ip.startswith("134.34"):
     update_gmx_environ("2022.3")
 
@@ -327,7 +328,7 @@ class TestSimCleanup:
     def teardown_class(cls):
         shutil.rmtree(cls.input_dir)
         shutil.rmtree(cls.output_dir)
-                shutil.rmtree(path_object)
+        shutil.rmtree(path_object)
 
     def setup_method(self) -> None:
         # create the input directory
@@ -340,14 +341,15 @@ class TestSimCleanup:
         shutil.copyfile(self.input_tpr_file, input_dir / "topol.tpr")
         shutil.copyfile(self.input_xtc_file, input_dir / "traj_comp.xtc")
         input_dir_ = str(self.input_dir) + "/nested/./directory/structure"
-        cleanup_sims(directories=[input_dir_],
-                     out_dir=self.output_dir,
-                     dt=20,
-                     max_time=140,
-                     center=True,
-                     create_pdb=True,
-                     file_exists_policy="overwrite",
-                     )
+        cleanup_sims(
+            directories=[input_dir_],
+            out_dir=self.output_dir,
+            dt=20,
+            max_time=140,
+            center=True,
+            create_pdb=True,
+            file_exists_policy="overwrite",
+        )
 
         out_file = self.output_dir / "directory/structure/traj_nojump.xtc"
         pdb_file = self.output_dir / "directory/structure/start.pdb"
@@ -357,12 +359,12 @@ class TestSimCleanup:
         test_file = md.load(str(out_file), top=str(pdb_file))
         assert len(test_file) == 8, print(out_file, pdb_file, test_file)
 
-
     def test_assert_true(self):
         assert False
 
     def test_get_lsb(self):
         from cleanup_sims.cleanup_sims import get_lsb
+
         out = get_lsb()
         assert isinstance(out, str)
 
