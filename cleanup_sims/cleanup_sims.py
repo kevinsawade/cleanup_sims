@@ -51,19 +51,18 @@ from pprint import pprint
 from MDAnalysis.lib.formats.libmdaxdr import XTCFile
 import argparse
 import asyncio
-import fcntl
 import logging
 import math
 import os
 import random
 import re
-import shutil
 import string
-import struct
 import subprocess
+import sys
 from aiodecorators import Semaphore
+from io import StringIO
 from pathlib import Path
-from typing import Callable, Generator, List, Literal, Optional, Union
+from typing import Callable, Generator, List, Literal, Optional, Union, Sequence
 
 import imohash
 import MDAnalysis as mda
@@ -102,13 +101,352 @@ FileExistsPolicyType = Literal[
 
 
 ################################################################################
+# Parser
+################################################################################
+
+
+class MyParser(argparse.ArgumentParser):
+    def error(self, message):
+        sys.stderr.write("error: %s\n" % message)
+        self.print_help()
+        sys.exit(2)
+
+
+class MyHelpFormatter(argparse.HelpFormatter):
+    def __init__(
+        self, prog, indent_increment=2, max_help_position=24, width=None
+    ) -> None:
+        super().__init__(prog, indent_increment, max_help_position, width)
+        self._width = 80
+
+
+class Capturing(list):
+    """Class to capture print statements from function calls.
+
+    Examples:
+        >>> # write a function
+        >>> def my_func(arg='argument'):
+        ...     print(arg)
+        ...     return('fin')
+        >>> # use capturing context manager
+        >>> with Capturing() as output:
+        ...     my_func('new_argument')
+        >>> print(output)
+        ['new_argument', "'fin'"]
+
+    """
+
+    def __enter__(self):
+        self._stdout = sys.stdout
+        sys.stdout = self._stringio = StringIO()
+        return self
+
+    def __exit__(self, *args):
+        self.extend(self._stringio.getvalue().splitlines())
+        del self._stringio  # free up some memory
+        sys.stdout = self._stdout
+
+
+parser = MyParser(
+    prog="cleanup_sims.py",
+    description=("This script helps you clean up your simulations. It's pretty "
+                 "elaborate, because Gromacs has a lot of ways it can screw with "
+                 "simulation files. Normally files are always checked before "
+                 "some action is taken. If the program gets interrupted at some "
+                 "point it will continue where it left. So iterative calls are "
+                 "encouraged."),
+    formatter_class=MyHelpFormatter,
+)
+parser.add_argument(
+    "-d",
+    nargs="*",
+    required=True,
+    metavar="/path/to/input/directory",
+    dest="directories",
+    help=("The input directories. You can provide as many as you like. You can "
+          "include truncation marks similar to rsync in the directory names. "
+          "These truncation marks will be used to determine the folder structure "
+          "in the output_directory. Let's say you provide "
+          "./cleanup_sims.py -d /path/to/./first/simulation/xtcs -d"
+          "/path/to/some/other/./simulation -o /output/dir, the directories "
+          "/output/dir/first/simulation/xtcs and /output/dir/simulation "
+          "will be created."),
+)
+parser.add_argument(
+    "-o",
+    required=False,
+    metavar="/path/to/output/directory",
+    dest="out_dir",
+    help=("The output directory, if you use the `-trjcat` flag, only the final "
+          "concatenated file will be written to the folders in the output "
+          "directory. The cleaned partial xtc files will be put into the same "
+          "directory they are now in. If `-trjcat` is not given, all *xtc files "
+          "in the input directories will be put in the folders created in the "
+          "output directory."),
+)
+parser.add_argument(
+    "-dt",
+    default=-1,
+    type=int,
+    metavar="timestep in ps",
+    help=("Similar to Gromacs' dt option. Only writes frames every frame mod "
+          "dt == 0 picoseconds. This is usually done using subprocess calls to "
+          "`gmx trjconv`. However, sometimes gromacs screws up and makes a dt "
+          "100 ps to some dt 92 and some dt 8 ps. If -1 is given all frames will "
+          "be written to output. Defaults to -1.")
+)
+parser.add_argument(
+    "-max",
+    default=-1,
+    dest="max_time",
+    type=int,
+    metavar="max time in ps",
+    help=("The maximum time in ps to write trajectories. If some of your "
+          "simulations don't reach that time, an exception will be thrown. If "
+          "-1 is provided, the maximum time per xtcs in a directoyr is used. "
+          "Defaults to -1. If the `-trjcat` option is provided and the output "
+          "file fits the -dt and -max flags, the simulation cleanup of that "
+          "simulation is considered finished. So consecutive calls will only "
+          "change the file if the parameters -dt, -max (and -n-atom) change."),
+)
+parser.add_argument(
+    "-n-atoms",
+    default=-1,
+    dest="n_atoms",
+    type=int,
+    metavar="n atoms in files for checks",
+    help=("Number of atoms that should be in the cleaned xtc files. If files "
+          "are already present in the output directory and don't match the "
+          "requested n_atoms, they will be overwritten."),
+)
+parser.add_argument(
+    "-s",
+    default="topol.tpr",
+    dest="s",
+    metavar="same as gmx trjconv -s",
+    help="""The .tpr files in the directories. Similar to gromacs' -s flag. \
+            Will overwrite the values set with -deffnm. So setting -deffnm prod\
+            uction -s some_tpr_file.tpr will look for some_tpr_file.tpr in the \
+            simulation directories.""",
+)
+parser.add_argument(
+    "-x",
+    default="traj_comp.xtc",
+    metavar="same as gmx mdrun -x",
+    help=("The .xtc files in the directories. Similar to gromacs' -f flag (which "
+          "is -x in mdrun). Will overwrite the values set with -deffnm. So "
+          "setting -deffnm production -x my_traj.xtc will look for my_traj.xtc, "
+          "my_traj.part0001.xtc, my_traj.part0002.xtc and so on in the "
+          "simulation directories. Defaults to traj_comp.xtc."),
+)
+parser.add_argument(
+    "-pbc",
+    default="none",
+    metavar="nojump, res, mol, whole, cluster, none",
+    help=("What to provide for the periodic boundary correction of `trjconv`."
+          "Is set to 'nojump' (best for single molecules) per default. Can also"
+          "be explicitly set to None, if you don't want any pbc correction."
+          "The pbc method will be used as the name of the output file. So `-pbc` "
+          "nojump will produce traj_nojump.xtc in your outout directories "
+          "(if `-trjcat` is set) or traj_comp_nojump.xtc, "
+          "traj_comp_nojump.part0001.xtc and so on, if `-trjcat` is not set. "
+          "If `-deffnm` or -x are set, the filenames of these will be used, so "
+          "that in theory my_traj_file_nojump.xtc and "
+          "my_traj_file_nojump.part0001.xtc are possible."),
+)
+parser.add_argument(
+    "-center",
+    action="store_true",
+    help=("Similar to gromacs trjconv's -[no]center option. If center is "
+          "provided the -ndx-group will be used both for centering and output. "
+          "Use the python function and provide a string with newline character "
+          "(\\n) to use different groups for pbc and center."),
+)
+parser.add_argument(
+    "-ndx-group",
+    default=1,
+    dest="output_group_and_center",
+    help=("The string to provide for `gmx trjconv` to center and remove pbcs from. "
+          "Can either be an integer (0 is most of the times the system, 1 is "
+          "most of the times the protein) or a string like System, Protein, "
+          "or a custom group read from the ndx file, which is created if "
+          "`-create-ndx` is provided. In any case, if you provide `-n-atoms`, "
+          "the algorithm will check the output and inform you, when it contains "
+          "a different number of atoms. This will allow you to tweak your "
+          "group selection or make sure, that Gromacs recognizes your protein "
+          "in group 1 correctly."),
+)
+parser.add_argument(
+    "-deffnm",
+    default=None,
+    metavar="same as gmx mdrun",
+    help=("The default filename for the files in the `-d` input directories. "
+          "If you run your mdrun simulations with `-deffnm` production, you "
+          "should also provide production for this argument. "
+          "If `-s` or `-x` are set, this will be overwritten."),
+)
+parser.add_argument(
+    "-trjcat",
+    action="store_true",
+    help=("Whether to concatenate the trajectories from the input directories "
+          "into one long (`-max` ps) trajectory. If `-trjcat` is set, the output "
+          "directory will only contain one .xtc file. The outputs from `gmx "
+          "trjconv` will be written into the input directories along with the "
+          "input .xtc files."),
+)
+parser.add_argument(
+    "-create-pdb",
+    action="store_true",
+    help=("When given, the output directories will also contain start.pdb files "
+          "that are extracted from the first frame of the simulations. These "
+          "can be used to load the clean trajectries into other tools."),
+)
+parser.add_argument(
+    "-create-ndx",
+    action="store_true",
+    help=("If gromacs doesn't recognize your protein as such and the index "
+          "group 1 (Protein) contains the wrong number of atoms, you can create "
+          "index.ndx files in the input directories with this option. "
+          "See the `-ndx-group-in` flag how to do so."),
+)
+parser.add_argument(
+    "-ndx-group-in",
+    default=None,
+    dest="ndx_add_group_stdin",
+    metavar="System, Protein, 1, SOL, ... (gmx group selection).",
+    help=("If you have non-standard residues in your protein and they are not "
+          "included in group 1 (protein) of the standard index, you can add a "
+          "custom group using this flag. If you have two non-standard residues "
+          "(LYQ and GLQ) you can create a new group from the protein and the "
+          "residue indices by providing the string 'Protein | GLQ | LYQ' (these "
+          "are logical or). This will use gmx make_ndx and the simulations .tpr "
+          "file to create an index.ndx file. The `-ndx-group` flag should then "
+          "be 'Protein_GLQ_LYQ'. If you are not sure, what to provide here, "
+          "play around with your .tpr files and `gmx make_ndx` and then start this "
+          "program with what you've learned from there."),
+)
+parser.add_argument(
+    "-per-file-timestep-policy",
+    default="raise",
+    help=("Currently not used. The idea is to raise an Exception, if a -dt "
+          "is not possible. Example: The file traj_comp.xtc has coordinates "
+          "every 20 ps but -dt 15 was provided. This should include some logic "
+          "to offer alternatives."),
+)
+parser.add_argument(
+    "-inter-file-timestep-policy",
+    default="raise",
+    help=("Currently not in use. Should contain logic on how to deal "
+          "discontinuities between trajectory files."),
+)
+parser.add_argument(
+    "-file-exists-policy",
+    default="raise",
+    metavar="raise, overwrite, continue, check_and_continue, check_and_overwrite",
+    help=("What to do if a file already exists. Let's say the algorithm tries "
+          "to overwrite traj_nojump.xtc, but it already exists. If 'raise' is "
+          "provided, the algorithm will terminate and raise an exception, if "
+          "'overwrite' is provided, the file will be overwritten without "
+          "additional checks. If 'continue' if provided, the file is assumed to "
+          "be good (this can lead to unforeseen consequences ie. different "
+          "number of atoms in files, etc). If 'check_and_continue' is provided, "
+          "the file will be checked. If it is not ok, an exception will be "
+          "raised. If 'check_and_overwrite' is provided the file will only be "
+          "overwritten, if it is wrong (i.e. wrong `-dt`, wrong `-n-atoms`)."),
+)
+parser.add_argument(
+    "-clean-copies",
+    action="store_true",
+    help=("Currently not in use anymore. Intention was to clean gromacs "
+          "copy files (#traj_comp.part0002.xtc.4#), but -file-exists-policy "
+          "replaced that part."),
+)
+parser.add_argument(
+    "-dry-run",
+    action="store_true",
+    help="Setting dryrun true, does neither delete, nor write files.",
+)
+parser.add_argument(
+    "-logfile",
+    default="sim_cleanup.log",
+    metavar="/path/to/logfile.log (will be created).",
+    help=("Where to log to. The logfile contains a lot of info. Especially, "
+          "if something happens which is not logged to the default WARNING level."),
+)
+parser.add_argument(
+    "-loglevel",
+    default="WARNING",
+    metavar="DEBUG, INFO, WARNING, CRITICAL",
+    help=("The loglevel to use. Defaults to INFO. Set to DEBUG to get many "
+          "more logs printed to console."),
+)
+
+
+################################################################################
 # Globals
 ################################################################################
 
 
 __all__ = ["cleanup_sims"]
 _dryrun = True
+_this_module = sys.modules[__name__]
 
+# add the command line usage
+with Capturing() as output:
+    parser.print_help()
+output = "\n".join(output)
+_this_module.__doc__ += f"""# Command line usage:
+
+```raw
+{output}
+```
+
+"""
+
+_this_module.__doc__ += f"""# Python API
+
+## Example
+
+
+```python
+from sim_cleanup import sim_cleanup
+
+dir1 = "/path/to/directory/./with/nested/sim/folders"
+dir2 = "/another/directory/with/nested/./sim/folders"
+out_dir = "/path/to/output"
+
+sim_cleanup(
+    directories=[dir1, dir2],
+    out_dir=out_dir,
+    dt=10,
+    max_time=10000,
+    create_pdb=True,
+)
+
+# output dirs:
+# out_dir1 = "/path/to/output/with/nested/sim/folders"
+# out_dir2 = "/path/to/output/sim/folders"
+
+```
+
+
+## Call signature
+
+Click here: `cleanup_sims`
+
+"""
+
+# add the unittest stuff
+test_module = Path(__file__).resolve().parent.parent / "tests/test_sim_cleanup.py"
+if test_module.is_file():
+    import ast
+
+    tree = ast.parse(test_module.read_text())
+    _this_module.__doc__ += ast.get_docstring(tree)
+
+
+# reset the argparser
+parser.formatter_class = argparse.HelpFormatter
 
 ################################################################################
 # Util classes
@@ -267,9 +605,9 @@ def _get_start_end_in_dt(
 
 def map_in_and_out_files(
     directories: Union[List[str]. List[List[str]]],
-    out_dir: Union[str, Path],
+    out_dir: Optional[Union[str, Path]] = None,
     x: str = "traj_comp.xtc",
-    pbc: str = "nojump",
+    pbc: Literal["mol", "res", "atom", "nojump", "cluster", "whole", "none"] = "none",
     deffnm: Optional[str] = None,
     trjcat: bool = True,
     combine: bool = False
@@ -277,16 +615,27 @@ def map_in_and_out_files(
     """Maps in and out files."""
     mapped_sims = {}
 
+    # if pbc is none, we will use clean for that
+    if pbc == "none":
+        pbc = "clean"
+
     # if deffnm is not None and traj_comp was
     # not manually redefined change x
     if deffnm is not None and x == "traj_comp.xtc":
         x = deffnm + ".xtc"
     base_filename = x.split(".")[0]
 
+    # fill the dict
     for directory in directories:
         if isinstance(directory, list):
             mapped_sims |= map_in_and_out_files(directory, out_dir, x, pbc, deffnm, trjcat, combine=True)
             continue
+
+        # decide on out_dir
+        if out_dir is None:
+            out_dir_ = Path(directory)
+        else:
+            out_dir_ = Path(out_dir)
 
         # the key dir is Path(directory) when files should not be combined
         # else it is the first dir in directories
@@ -307,11 +656,10 @@ def map_in_and_out_files(
             else:
                 cat_base_filename = base_filename
             out_file = (
-                Path(out_dir)
+                out_dir_
                 / directory.split("/./")[1]
                 / f"{cat_base_filename}_{pbc}.xtc"
             )
-            out_dir_ = Path(directory).parent
             mapped_sims[key_dir]["trjcat"] = out_file
         else:
             mapped_sims[key_dir]["trjcat"] = False
@@ -319,6 +667,8 @@ def map_in_and_out_files(
         if not combine:
             mapped_sims[key_dir] = {}
         mapped_sims[key_dir]["trjcat"] = out_file
+
+        # discover files
         files = list(Path(directory).glob(x.replace(".xtc", "*.xtc")))
         p = re.compile(x.rstrip(".xtc") + r"(.xtc|.part\d{4}.xtc)")
         files = filter(lambda x: p.search(str(x)) is not None, files)
@@ -327,13 +677,13 @@ def map_in_and_out_files(
         # if only one sim, put that into output. No cat
         if len(files) == 1:
             mapped_sims[Pkey_dir]["trjcat"] = False
-            out_dir_ = Path(out_dir)
+
             file = files[0]
             if "/./" in str(directory):
-                out_file = Path(out_dir_) / directory.split("/./")[1]
+                out_file = out_dir_ / directory.split("/./")[1]
                 out_file /= file.name.replace(base_filename, base_filename + f"_{pbc}")
             else:
-                out_file = Path(out_dir_) / file.name.replace(
+                out_file = out_dir_ / file.name.replace(
                     base_filename, base_filename + f"_{pbc}"
                 )
             out_file = Path(str(out_file).replace("_comp", ""))
@@ -341,6 +691,8 @@ def map_in_and_out_files(
 
         # put the tmp sims into input, then cat
         else:
+            if trjcat:
+                out_dir_ = Path(directory)
             for file in files:
                 if "/./" in str(directory):
                     out_file = Path(out_dir_) / directory.split("/./")[1]
@@ -537,6 +889,96 @@ async def check_file_with_dataset(
     )
     return {file: command}
 
+def check_for_right_false_times_coords(
+    metadata: dict[str, np.ndarray],
+    input_files: list[Path],
+    acceptable_drift: float = 0.0025,
+    logger: Optional[logging.Logger] = None,
+) -> tuple:
+    from MDAnalysis.coordinates.XTC import XTCReader
+    from copy import deepcopy
+
+    if logger is None:
+        logger = _get_logger()
+
+    timestep_drift = {}
+    mean_all = []
+    unique_dt = []
+    for file in input_files:
+        timestep_drift[file] = {}
+
+        # get the timesteps from metadata and see whether we can get away with
+        # just some preliminary screen of the traj or a full load
+        times_file = metadata[file]
+        timesteps_file = np.unique(times_file[1:] - times_file[:-1])
+        if len(timesteps_file) == 1:
+            prelim_screen = True
+            logger.debug(f"The file {file} contains a single homogeneous timestep"
+                         f"({timesteps_file}). I will conduct a preliminary "
+                         f"screening of the first 500 frames to check whether "
+                         f"the coordinates are ok.")
+        else:
+            prelim_screen = False
+            logger.debug(f"The file {file} contains a single multiple timesteps"
+                         f"({timesteps_file}). I will load the complete file to "
+                         f"check whether the cooridnates fit to the different "
+                         f"timesteps, or whether gromacs wrote wrong times.")
+
+        # get the drift and the dt
+        with XTCReader(str(file)) as r:
+            for i, ts in enumerate(r.trajectory):
+                print(ts.time)
+                if i == 0:
+                    prev_time = deepcopy(ts.time)
+                    prev_pos = deepcopy(ts.positions)
+                    continue
+                dt = int(ts.time - prev_time)
+                unique_dt.append(dt)
+                if dt not in timestep_drift[file]:
+                    timestep_drift[file][dt] = []
+                drift = np.mean(np.abs(np.linalg.norm(prev_pos - ts.positions)))
+                mean_all.append(drift)
+                timestep_drift[file][dt].append(drift)
+                prev_time = deepcopy(ts.time)
+                prev_pos = deepcopy(ts.positions)
+                if i >= 500 and prelim_screen:
+                    break
+
+        # mean drift per dt per file
+        for dt in timestep_drift[file].keys():
+            timestep_drift[file][dt] = np.mean(timestep_drift[file][dt])
+
+    # mean all
+    mean_all = np.mean(mean_all)
+    drift_ok = np.all([np.all([np.isclose(v, mean_all, rtol=acceptable_drift) for v in value.values()]) for value in timestep_drift.values()])
+    timesteps_ok = len(timesteps_file) == 1
+
+    # Not all drift_ok and timestep_ok combinations are possible
+    # case 1 (all good): The timesteps are regular and the atomic drift is regular, too:
+    # timetsep_ok and drift_ok
+    # => continue
+    # case 2 (gromacs wrote wrong timesteps): Different timesteps occur, but the
+    # atomic drift between those timesteps does not differ
+    # not timesteps_ok and drift_ok
+    # case 3 (timesteps differ, but drifts fit for their specific timestep bracket)
+    #
+    # case 4: (timesteps are ok, but drifts don't fit for the regular timesteps)
+
+    if drift_ok:
+        logger.warning(f"The files in {input_files[0].parent} exhibit shifting "
+                       f"timesteps with dt = {timesteps_file} ps. However, I suspect "
+                       f"that only the times written by gromacs are wrong, as the "
+                       f"coordinates stay within a relative tolerance of "
+                       f"{acceptable_drift}. Using this equation: "
+                       f"abs(drift - mean_all) <= {acceptable_drift} * abs({mean_all}) "
+                       f" = {acceptable_drift * np.abs(mean_all)}. "
+                       f"Thus, I will map the timestamps:\n"
+                       f"")
+    else:
+        raise Exception
+
+    return tuple()
+
 
 def feasibility_check(
     metadata: dict[str, np.ndarray],
@@ -556,7 +998,7 @@ def feasibility_check(
         max_time (int): The max_time requested.
 
     Returns:
-        bool: Wheter possible or not.
+        bool: Whether possible or not.
 
     """
     if logger is None:
@@ -592,7 +1034,8 @@ def feasibility_check(
                 f"with a max_time of {max_time=} needs to be {n_timesteps=}, "
                 f"but the files allow for {n_timesteps_in_files=}. These timesteps "
                 f"are the result of these timestamps:\n\n{check_timestamps}\n\n"
-                f"{(np.unique(input_times) % dt == 0)=}"
+                f"This might not be the end of this simulation I will continue. "
+                f"to check whether the coordinates or the times are wrong"
             )
             return False
 
@@ -873,6 +1316,7 @@ async def write_and_check_times(
     per_file_timestep_policy: PerFileTimestepPolicyType = "raise",
     inter_file_timestep_policy: InterFileTimestepPolicyType = "raise",
     file_exists_policy: FileExistsPolicyType = "raise",
+    acceptable_drift: float = 0.0025,
     logger: Optional[logging.Logger] = None,
 ) -> dict:
     sim_dir, sim_files = simulation
@@ -952,6 +1396,9 @@ async def write_and_check_times(
     # update all files in metadata
     metadata = await update_files_in_metdata(metadata, data_file, sim_files, logger)
 
+    # check drifting times_and_frames
+    check_for_right_false_times_coords(metadata, input_files, acceptable_drift, logger)
+    return
     # check the input files for feasibility
     if not feasibility_check(metadata, input_files, dt, max_time, logger):
         raise Exception(
@@ -1520,6 +1967,7 @@ async def prepare_sim_cleanup(
     per_file_timestep_policy: PerFileTimestepPolicyType = "raise",
     inter_file_timestep_policy: InterFileTimestepPolicyType = "raise",
     file_exists_policy: FileExistsPolicyType = "raise",
+    acceptable_drift: float = 0.0025,
     logger: Optional[logging.logger] = None,
 ) -> dict:
     plan = await asyncio.gather(
@@ -1532,6 +1980,7 @@ async def prepare_sim_cleanup(
                 per_file_timestep_policy,
                 inter_file_timestep_policy,
                 file_exists_policy,
+                acceptable_drift,
                 logger,
             )
             for simulation in simulations.items()
@@ -1907,13 +2356,13 @@ async def async_create_tpr(
 
 def cleanup_sims(
     directories: Union[List[str], List[List[str]]],
-    out_dir: Union[str, Path],
+    out_dir: Optional[Union[str, Path]] = None,
     dt: int = -1,
     max_time: int = -1,
     n_atoms: int = -1,
     s: str = "topol.tpr",
     x: str = "traj_comp.xtc",
-    pbc: Literal["none", "mol", "res", "atom", "nojump", "cluster", "whole"] = "none",
+    pbc: Literal["mol", "res", "atom", "nojump", "cluster", "whole", "none"] = "none",
     ur: Literal["rect", "tric", "compact"] = "rect",
     center: bool = False,
     output_group_and_center: Union[str, int] = 1,
@@ -1928,6 +2377,7 @@ def cleanup_sims(
     file_exists_policy: FileExistsPolicyType = "raise",
     clean_copies: bool = True,
     dry_run: bool = False,
+    acceptable_drift: float = 0.0025,
     logfile: Optional[Path] = Path("sim_cleanup.log"),
     loglevel: int = logging.INFO,
 ) -> None:
@@ -2102,10 +2552,10 @@ def cleanup_sims(
         dry_run (bool): If dry-run is set to True, no files will be written or
             deleted.
         logfile (str): Where to place the logfile at. Defaults to sim_cleanup.log.
-        loglevel (str): What level to log at. Defaults to WARNING.
+        loglevel (int): What level to log at. Defaults to WARNING.
 
     """
-    pbcs_ = ["mol", "res", "atom", "nojump", "cluster", "whole", "None"]
+    pbcs_ = ["mol", "res", "atom", "nojump", "cluster", "whole", "none"]
     if not pbc in pbcs_:
         raise Exception(f"Please choose one of {pbcs_} for `pbc`")
     if pbc == "None":
@@ -2237,6 +2687,7 @@ def cleanup_sims(
             per_file_timestep_policy,
             inter_file_timestep_policy,
             file_exists_policy,
+            acceptable_drift,
             logger,
         )
     )
@@ -2281,7 +2732,7 @@ def cleanup_sims(
                     "inp_file": inp_file,
                     "s": tpr_file,
                 }
-                if pbc is not None:
+                if pbc != "none":
                     command["cmd"] += f" -pbc {pbc}"
                 if create_ndx:
                     command["cmd"] += f" -n {ndx_file}"
