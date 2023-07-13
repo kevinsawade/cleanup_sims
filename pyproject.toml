@@ -19,7 +19,8 @@ plugins = "numpy.typing.mypy_plugin"
 # pytest
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov=cleanup_sims --cov-report=html --html=docs/build/static/html_report.html --self-contained-html"
+# comment for devel because pycharm does not like --cov with debugger
+# addopts = "--cov=cleanup_sims --cov-report=html --html=docs/build/static/html_report.html --self-contained-html"
 
 # coverage
 [tool.coverage.run]

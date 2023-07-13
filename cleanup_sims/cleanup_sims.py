@@ -664,9 +664,6 @@ def map_in_and_out_files(
         else:
             mapped_sims[key_dir]["trjcat"] = False
             out_dir_ = Path(out_dir)
-        if not combine:
-            mapped_sims[key_dir] = {}
-        mapped_sims[key_dir]["trjcat"] = out_file
 
         # discover files
         files = list(Path(directory).glob(x.replace(".xtc", "*.xtc")))
@@ -676,7 +673,7 @@ def map_in_and_out_files(
 
         # if only one sim, put that into output. No cat
         if len(files) == 1:
-            mapped_sims[Pkey_dir]["trjcat"] = False
+            mapped_sims[key_dir]["trjcat"] = False
 
             file = files[0]
             if "/./" in str(directory):
@@ -744,9 +741,13 @@ async def _get_times_from_file(
     file: Path,
     logger: Optional[logging.Logger] = None,
 ) -> np.ndarray:
-    logger.info(f"The file {file} exists. Getting its times.")
+    logger.debug(f"The file {file} exists. Getting its times.")
     with XTC(file) as f:
         times = np.vstack([d for d in f])
+    logger.debug(
+        f"The file {file} has these times:\ntimes[:10]=\n{times[:10]}"
+        f"\n\ntimes[-10:]=\n{times[-10:]}"
+    )
     return times
 
 
@@ -910,21 +911,25 @@ def check_for_right_false_times_coords(
         # get the timesteps from metadata and see whether we can get away with
         # just some preliminary screen of the traj or a full load
         times_file = metadata[file]
-        timesteps_file = np.unique(times_file[1:] - times_file[:-1])
+        timesteps_file = np.unique(times_file[1:, 1] - times_file[:-1, 1])
+        logger.debug(f"Checking for drift in file {file} with unique timesteps: {timesteps_file}.")
         if len(timesteps_file) == 1:
             prelim_screen = True
-            logger.debug(f"The file {file} contains a single homogeneous timestep"
+            logger.info(f"The file {file} contains a single homogeneous timestep"
                          f"({timesteps_file}). I will conduct a preliminary "
                          f"screening of the first 500 frames to check whether "
                          f"the coordinates are ok.")
         else:
             prelim_screen = False
-            logger.debug(f"The file {file} contains a single multiple timesteps"
-                         f"({timesteps_file}). I will load the complete file to "
-                         f"check whether the cooridnates fit to the different "
-                         f"timesteps, or whether gromacs wrote wrong times.")
+            logger.info(
+                f"The file {file} contains multiple timesteps"
+                f"({timesteps_file}). I will load the complete file to "
+                f"check whether the cooridnates fit to the different "
+                f"timesteps, or whether gromacs wrote wrong times."
+            )
 
         # get the drift and the dt
+        # adhere to minimum image convention in rect or tric cell
         with XTCReader(str(file)) as r:
             for i, ts in enumerate(r.trajectory):
                 print(ts.time)
@@ -965,16 +970,27 @@ def check_for_right_false_times_coords(
     # case 4: (timesteps are ok, but drifts don't fit for the regular timesteps)
 
     if drift_ok:
-        logger.warning(f"The files in {input_files[0].parent} exhibit shifting "
-                       f"timesteps with dt = {timesteps_file} ps. However, I suspect "
-                       f"that only the times written by gromacs are wrong, as the "
-                       f"coordinates stay within a relative tolerance of "
-                       f"{acceptable_drift}. Using this equation: "
-                       f"abs(drift - mean_all) <= {acceptable_drift} * abs({mean_all}) "
-                       f" = {acceptable_drift * np.abs(mean_all)}. "
-                       f"Thus, I will map the timestamps:\n"
-                       f"")
+        logger.warning(
+            f"The files in {input_files[0].parent} exhibit shifting "
+            f"timesteps with dt = {timesteps_file} ps. However, I suspect "
+            f"that only the times written by gromacs are wrong, as the "
+            f"coordinates stay within a relative tolerance of "
+            f"{acceptable_drift}. Using this equation: "
+            f"abs(drift - mean_all) <= {acceptable_drift} * abs({mean_all}) "
+            f"= {acceptable_drift * np.abs(mean_all)}. "
+            f"Thus, I will map the timestamps:\n"
+            f""
+        )
     else:
+        logger.warning(
+            f"The files in {input_files[0].parent} exhibit shifting "
+            f"timesteps with dt = {timesteps_file} ps. I suspect, that "
+            f"in this case, the coordinates match the times, as I encounter "
+            f"atomic drift with a relative tolerance greater than {acceptable_drift}. "
+            f"Mean atomic drift is calculated using this equation: "
+            f"abs(drift - mean_all) <= {acceptable_drift} * abs({mean_all}) "
+            f"= {acceptable_drift * np.abs(mean_all)}. "
+        )
         raise Exception
 
     return tuple()
@@ -1219,7 +1235,7 @@ async def update_times_on_wrong_hash(
             f"Since last opening the metadata.npz for the file {file}, "
             f"the file has changed. Loading new times from that file."
         )
-        times = await get_times_from_file(Path(file))
+        times = await get_times_from_file(Path(file), logger=logger)
         # update times
         metadata[file] = times
         # and hash
@@ -1233,7 +1249,7 @@ async def update_times_on_wrong_hash(
     return metadata
 
 
-async def update_files_in_metdata(
+async def update_files_in_metadata(
     metadata: dict[str, np.ndarray],
     metadata_file: Path,
     files: dict[Union[str, Path], Path],
@@ -1268,7 +1284,7 @@ async def update_files_in_metdata(
             f"to the simulation. Adding its metadata to the sims "
             f"metadata.npz."
         )
-        timedata = await get_times_from_file(new_file)
+        timedata = await get_times_from_file(new_file, logger=logger)
         new_hash = imohash.hashfile(new_file, hexdigest=True)
         metadata[new_file] = timedata
         if str(new_file) in metadata["file_hashes"][:, 0]:
@@ -1394,11 +1410,11 @@ async def write_and_check_times(
     metadata = await update_times_on_wrong_hash(metadata, data_file, logger)
 
     # update all files in metadata
-    metadata = await update_files_in_metdata(metadata, data_file, sim_files, logger)
+    metadata = await update_files_in_metadata(metadata, data_file, sim_files, logger)
 
     # check drifting times_and_frames
     check_for_right_false_times_coords(metadata, input_files, acceptable_drift, logger)
-    return
+
     # check the input files for feasibility
     if not feasibility_check(metadata, input_files, dt, max_time, logger):
         raise Exception(
@@ -1736,7 +1752,7 @@ async def run_command_and_check(
 
     # run tests on the new file
     if not _dryrun:
-        times = (await get_times_from_file(out_file))[:, 1]
+        times = (await get_times_from_file(out_file, logger=logger))[:, 1]
     else:
         logger.warning(f"DRY-RUN: Setting the times of the nonexistent {out_file}.")
         times = np.arange(b, e + 1, dt).astype(int)
@@ -1807,7 +1823,7 @@ async def run_command_and_check(
     )
 
     # check the file again
-    times = (await get_times_from_file(out_file))[:, 1]
+    times = (await get_times_from_file(out_file, logger=logger))[:, 1]
 
     start_ok = times[0] == b
     end_ok = times[-1] == e
@@ -2060,7 +2076,7 @@ async def run_concat_command(
 
     # run tests on the new file
     if not _dryrun:
-        times = (await get_times_from_file(out_file))[:, 1]
+        times = (await get_times_from_file(out_file, logger=logger))[:, 1]
     else:
         times = np.arange(b, e + 1, dt).astype(int)
     if not _dryrun:
@@ -2605,12 +2621,12 @@ def cleanup_sims(
     # get the input and the predefined output
     simulations = map_in_and_out_files(directories, out_dir, x, pbc, deffnm, trjcat)
 
-    # based on this we can already collect the commands to create pdb files
+    # based on this we can already collect the commands to create pdb and tpr files
     if create_pdb or create_tpr:
         pdb_commands = []
         tpr_commands = []
         for sim_dir, simulation in simulations.items():
-            if len(simulation) == 2:
+            if not simulation["trjcat"]:
                 for inp_file, out_file in simulation.items():
                     if inp_file != "trjcat":
                         tpr_file = inp_file.parent / s
