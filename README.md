@@ -20,7 +20,7 @@ $ pip install cleanup-sims
 
 # Usage
 
-This will install a command-line tool called `cleanup_sims` in your python environment. Access the help with
+This will install a command-line tool called `cleanup_sims` in your python environment. Access the help with:
 
 ```bash
 $ cleanup_sims -h
